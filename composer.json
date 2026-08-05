@@ -1,0 +1,10 @@
+{
+    "name": "wp-watchdog/agent-plugin",
+    "description": "WordPress Watchdog WordPress Agent plugin",
+    "type": "wordpress-plugin",
+    "autoload": {
+        "psr-4": {
+            "WPWatchdog\\Agent\\": "src/"
+        }
+    }
+}
