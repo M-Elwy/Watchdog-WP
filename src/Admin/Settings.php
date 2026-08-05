@@ -12,12 +12,13 @@ class Settings
 
     public function add_menu_page(): void
     {
-        add_options_page(
+        add_menu_page(
             __('WordPress Watchdog', 'wp-watchdog'),
             __('WordPress Watchdog', 'wp-watchdog'),
             'manage_options',
             'wp-watchdog-settings',
-            [$this, 'render_page']
+            [$this, 'render_page'],
+            'dashicons-shield'
         );
     }
 
