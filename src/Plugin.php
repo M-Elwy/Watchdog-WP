@@ -3,6 +3,7 @@
 namespace WPWatchdog\Agent;
 
 use WPWatchdog\Agent\Admin\Settings;
+use WPWatchdog\Agent\Cron\Heartbeat;
 use WPWatchdog\Agent\Rest\JsErrorEndpoint;
 use WPWatchdog\Agent\Trappers\ErrorTrapper;
 use WPWatchdog\Agent\Trappers\StateChangeListener;
@@ -13,6 +14,7 @@ class Plugin
     protected $error_trapper;
     protected $state_change_listener;
     protected $js_error_endpoint;
+    protected $heartbeat;
 
     public function __construct()
     {
@@ -20,6 +22,7 @@ class Plugin
         $this->error_trapper = new ErrorTrapper();
         $this->state_change_listener = new StateChangeListener();
         $this->js_error_endpoint = new JsErrorEndpoint();
+        $this->heartbeat = new Heartbeat();
     }
 
     public function register(): void
@@ -28,6 +31,7 @@ class Plugin
         $this->error_trapper->register();
         $this->state_change_listener->register();
         $this->js_error_endpoint->register();
+        $this->heartbeat->register();
         add_action('wp_enqueue_scripts', [$this, 'enqueue_frontend_script']);
     }
 

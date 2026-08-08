@@ -7,18 +7,18 @@ use WPWatchdog\Agent\Sanitizer;
 
 class Client
 {
-    public function dispatch(array $payload): void
+    public function dispatch(array $payload, bool $queue_on_failure = true, string $endpoint = '/events/ingest'): bool
     {
         $sanitized = Sanitizer::clean_payload($payload);
 
         $breaker = new CircuitBreaker();
         if (!$breaker->is_allowed()) {
-            return;
+            return false;
         }
 
         $api_key = get_option('wp_watchdog_api_key', '');
         if ('' === $api_key) {
-            return;
+            return false;
         }
 
         $request_args = [
@@ -31,6 +31,18 @@ class Client
             'blocking' => false,
         ];
 
-        wp_remote_post(WP_WATCHDOG_API_URL . '/events/ingest', $request_args);
+        $response = wp_remote_post(WP_WATCHDOG_API_URL . $endpoint, $request_args);
+        $response_code = wp_remote_retrieve_response_code($response);
+
+        if (is_wp_error($response) || 200 > (int) $response_code || 299 < (int) $response_code) {
+            if ($queue_on_failure) {
+                $queue = new Queue();
+                $queue->add($sanitized);
+            }
+
+            return false;
+        }
+
+        return true;
     }
 }
