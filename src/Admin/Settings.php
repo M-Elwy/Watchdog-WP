@@ -4,6 +4,12 @@ namespace WPWatchdog\Agent\Admin;
 
 class Settings
 {
+    protected $incidents_view;
+
+    public function __construct()
+    {
+        $this->incidents_view = new IncidentsView();
+    }
     public function register(): void
     {
         add_action('admin_menu', [$this, 'add_menu_page']);
@@ -121,6 +127,7 @@ class Settings
                 <?php do_settings_sections('wp_watchdog_settings_group'); ?>
                 <?php submit_button(__('Save Settings', 'wp-watchdog')); ?>
             </form>
+            <?php $this->incidents_view->render(); ?>
         </div>
 <?php
     }
