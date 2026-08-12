@@ -20,7 +20,7 @@ if (!defined('WP_WATCHDOG_PATH')) {
 }
 
 if (!defined('WP_WATCHDOG_API_URL')) {
-    define('WP_WATCHDOG_API_URL', 'https://wpwd.aidly.com/v1');
+    define('WP_WATCHDOG_API_URL', 'https://saas-wd.aidly.com/v1');
 }
 
 spl_autoload_register(static function ($class): void {

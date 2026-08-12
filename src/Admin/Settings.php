@@ -16,6 +16,46 @@ class Settings
         add_action('admin_init', [$this, 'register_settings']);
     }
 
+    public function validate_api_key_option($value, $old_value, $option): string
+    {
+        $api_key = is_string($value) ? trim(wp_unslash($value)) : '';
+        $api_key = sanitize_text_field($api_key);
+
+        if ('' === $api_key) {
+            return '';
+        }
+
+        $verify_url = rtrim(WP_WATCHDOG_API_URL, '/') . (false !== strpos(WP_WATCHDOG_API_URL, '/v1') ? '/sites/verify' : '/v1/sites/verify');
+        $response = wp_remote_post($verify_url, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $api_key,
+                'Content-Type' => 'application/json',
+            ],
+            'timeout' => 5,
+        ]);
+
+        if (is_wp_error($response) || 200 !== (int) wp_remote_retrieve_response_code($response)) {
+            add_settings_error('wp_watchdog_api_key', 'invalid_key', __('Could not verify API Key with Watchdog server.', 'wp-watchdog'));
+
+            return $old_value;
+        }
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        $site_id = isset($body['data']['site_id']) ? sanitize_text_field((string) $body['data']['site_id']) : '';
+
+        if ('' === $site_id) {
+            add_settings_error('wp_watchdog_api_key', 'invalid_key', __('Could not verify API Key with Watchdog server.', 'wp-watchdog'));
+
+            return $old_value;
+        }
+
+        update_option('wp_watchdog_api_key', $api_key);
+        update_option('wp_watchdog_site_id', $site_id);
+        delete_transient('wp_watchdog_cached_incidents');
+
+        return $api_key;
+    }
+
     public function add_menu_page(): void
     {
         add_menu_page(
@@ -30,6 +70,8 @@ class Settings
 
     public function register_settings(): void
     {
+        add_filter('pre_update_option_wp_watchdog_api_key', [$this, 'validate_api_key_option'], 10, 3);
+
         add_settings_section(
             'wp_watchdog_main',
             __('Main Settings', 'wp-watchdog'),
@@ -122,6 +164,7 @@ class Settings
 ?>
         <div class="wrap">
             <h1><?php echo esc_html__('WordPress Watchdog Settings', 'wp-watchdog'); ?></h1>
+            <?php settings_errors('wp_watchdog_api_key'); ?>
             <form method="post" action="options.php">
                 <?php settings_fields('wp_watchdog_settings_group'); ?>
                 <?php do_settings_sections('wp_watchdog_settings_group'); ?>
