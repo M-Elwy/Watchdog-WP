@@ -70,7 +70,7 @@ class IncidentsView
         }
 
         $response = wp_remote_get(
-            WP_WATCHDOG_API_URL . '/v1/sites/incidents',
+            WP_WATCHDOG_API_URL . '/' . WP_WATCHDOG_API_VERSION . '/sites/incidents',
             [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $api_key,

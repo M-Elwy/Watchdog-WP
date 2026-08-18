@@ -19,7 +19,7 @@ class JsErrorEndpoint
     public function register(): void
     {
         add_action('rest_api_init', function (): void {
-            register_rest_route('wp-watchdog/v1', '/js-error', [
+            register_rest_route('wp-watchdog/' . WP_WATCHDOG_API_VERSION, '/js-error', [
                 'methods' => 'POST',
                 'callback' => [$this, 'handle_request'],
                 'permission_callback' => '__return_true',

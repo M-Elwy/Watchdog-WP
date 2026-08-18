@@ -7,7 +7,7 @@ use WPWatchdog\Agent\Sanitizer;
 
 class Client
 {
-    public function dispatch(array $payload, bool $queue_on_failure = true, string $endpoint = '/events/ingest'): bool
+    public function dispatch(array $payload, bool $queue_on_failure = true, string $endpoint = '/' . WP_WATCHDOG_API_VERSION . '/events/ingest'): bool
     {
         $sanitized = Sanitizer::clean_payload($payload);
 

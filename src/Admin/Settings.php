@@ -25,7 +25,8 @@ class Settings
             return '';
         }
 
-        $verify_url = rtrim(WP_WATCHDOG_API_URL, '/') . (false !== strpos(WP_WATCHDOG_API_URL, '/v1') ? '/sites/verify' : '/v1/sites/verify');
+        $version_path = '/' . WP_WATCHDOG_API_VERSION;
+        $verify_url = rtrim(WP_WATCHDOG_API_URL, '/') . (false !== strpos(WP_WATCHDOG_API_URL, $version_path) ? '/sites/verify' : $version_path . '/sites/verify');
         error_log('Verifying API Key with Watchdog server: ' . $verify_url);
         $response = wp_remote_post($verify_url, [
             'headers' => [
