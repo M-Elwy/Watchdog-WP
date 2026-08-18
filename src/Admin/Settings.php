@@ -26,15 +26,17 @@ class Settings
         }
 
         $verify_url = rtrim(WP_WATCHDOG_API_URL, '/') . (false !== strpos(WP_WATCHDOG_API_URL, '/v1') ? '/sites/verify' : '/v1/sites/verify');
+        error_log('Verifying API Key with Watchdog server: ' . $verify_url);
         $response = wp_remote_post($verify_url, [
             'headers' => [
                 'Authorization' => 'Bearer ' . $api_key,
                 'Content-Type' => 'application/json',
             ],
-            'timeout' => 5,
+            'timeout' => 10,
         ]);
 
         if (is_wp_error($response) || 200 !== (int) wp_remote_retrieve_response_code($response)) {
+            error_log('Failed to verify API Key with Watchdog server: ' . (is_wp_error($response) ? $response->get_error_message() : 'HTTP ' . wp_remote_retrieve_response_code($response)));
             add_settings_error('wp_watchdog_api_key', 'invalid_key', __('Could not verify API Key with Watchdog server.', 'wp-watchdog'));
 
             return $old_value;
@@ -42,7 +44,7 @@ class Settings
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
         $site_id = isset($body['data']['site_id']) ? sanitize_text_field((string) $body['data']['site_id']) : '';
-
+        error_log('Watchdog server response: ' . wp_remote_retrieve_body($response) . ', site_id: ' . $site_id);
         if ('' === $site_id) {
             add_settings_error('wp_watchdog_api_key', 'invalid_key', __('Could not verify API Key with Watchdog server.', 'wp-watchdog'));
 

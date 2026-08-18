@@ -27,7 +27,7 @@ class Client
                 'Content-Type' => 'application/json',
             ],
             'body' => wp_json_encode($sanitized),
-            'timeout' => 1,
+            'timeout' => 10,
             'blocking' => false,
         ];
 

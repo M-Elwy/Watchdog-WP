@@ -76,7 +76,7 @@ class IncidentsView
                     'Authorization' => 'Bearer ' . $api_key,
                     'Content-Type' => 'application/json',
                 ],
-                'timeout' => 3,
+                'timeout' => 10,
             ]
         );
 
