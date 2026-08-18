@@ -17,7 +17,8 @@ class Client
         }
 
         $api_key = get_option('wp_watchdog_api_key', '');
-        if ('' === $api_key) {
+        $is_verified = (bool) get_option('wp_watchdog_api_key_verified', false);
+        if ('' === $api_key || !$is_verified) {
             return false;
         }
 
@@ -35,6 +36,13 @@ class Client
         $response_code = wp_remote_retrieve_response_code($response);
 
         if (is_wp_error($response) || 200 > (int) $response_code || 299 < (int) $response_code) {
+            if (401 === (int) $response_code) {
+                update_option('wp_watchdog_api_key_verified', false, false);
+                error_log('Unauthorized site API key; event delivery paused.');
+
+                return false;
+            }
+
             if ($queue_on_failure) {
                 $queue = new Queue();
                 $queue->add($sanitized);

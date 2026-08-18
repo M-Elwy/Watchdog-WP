@@ -10,10 +10,22 @@ class Settings
     {
         $this->incidents_view = new IncidentsView();
     }
+
+    public static function is_api_key_verified(): bool
+    {
+        return (bool) get_option('wp_watchdog_api_key_verified', false);
+    }
+
+    public static function mark_api_key_verified(bool $verified): void
+    {
+        update_option('wp_watchdog_api_key_verified', $verified, false);
+    }
+
     public function register(): void
     {
         add_action('admin_menu', [$this, 'add_menu_page']);
         add_action('admin_init', [$this, 'register_settings']);
+        add_action('admin_notices', [$this, 'render_verification_notice']);
     }
 
     public function validate_api_key_option($value, $old_value, $option): string
@@ -22,6 +34,8 @@ class Settings
         $api_key = sanitize_text_field($api_key);
 
         if ('' === $api_key) {
+            self::mark_api_key_verified(false);
+
             return '';
         }
 
@@ -37,6 +51,7 @@ class Settings
         ]);
 
         if (is_wp_error($response) || 200 !== (int) wp_remote_retrieve_response_code($response)) {
+            self::mark_api_key_verified(false);
             error_log('Failed to verify API Key with Watchdog server: ' . (is_wp_error($response) ? $response->get_error_message() : 'HTTP ' . wp_remote_retrieve_response_code($response)));
             add_settings_error('wp_watchdog_api_key', 'invalid_key', __('Could not verify API Key with Watchdog server.', 'wp-watchdog'));
 
@@ -47,13 +62,18 @@ class Settings
         $site_id = isset($body['data']['site_id']) ? sanitize_text_field((string) $body['data']['site_id']) : '';
         error_log('Watchdog server response: ' . wp_remote_retrieve_body($response) . ', site_id: ' . $site_id);
         if ('' === $site_id) {
+            self::mark_api_key_verified(false);
             add_settings_error('wp_watchdog_api_key', 'invalid_key', __('Could not verify API Key with Watchdog server.', 'wp-watchdog'));
 
             return $old_value;
         }
 
+        remove_filter('pre_update_option_wp_watchdog_api_key', [$this, 'validate_api_key_option']);
         update_option('wp_watchdog_api_key', $api_key);
+        add_filter('pre_update_option_wp_watchdog_api_key', [$this, 'validate_api_key_option'], 10, 3);
+
         update_option('wp_watchdog_site_id', $site_id);
+        self::mark_api_key_verified(true);
         delete_transient('wp_watchdog_cached_incidents');
 
         return $api_key;
@@ -158,6 +178,20 @@ class Settings
         echo '</select>';
     }
 
+    public function render_verification_notice(): void
+    {
+        if (!current_user_can('manage_options') || self::is_api_key_verified()) {
+            return;
+        }
+
+        $api_key = get_option('wp_watchdog_api_key', '');
+        if ('' === $api_key) {
+            return;
+        }
+
+        echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__('WordPress Watchdog:', 'wp-watchdog') . '</strong> ' . esc_html__('Your API key is not verified, so event delivery is paused until the key is updated and re-validated.', 'wp-watchdog') . '</p></div>';
+    }
+
     public function render_page(): void
     {
         if (!current_user_can('manage_options')) {
@@ -167,6 +201,11 @@ class Settings
 ?>
         <div class="wrap">
             <h1><?php echo esc_html__('WordPress Watchdog Settings', 'wp-watchdog'); ?></h1>
+            <?php if (!self::is_api_key_verified() && '' !== get_option('wp_watchdog_api_key', '')) : ?>
+                <div class="notice notice-warning inline">
+                    <p><?php echo esc_html__('Warning: this API key is not verified. Events are paused until the key is corrected and re-verified.', 'wp-watchdog'); ?></p>
+                </div>
+            <?php endif; ?>
             <?php settings_errors('wp_watchdog_api_key'); ?>
             <form method="post" action="options.php">
                 <?php settings_fields('wp_watchdog_settings_group'); ?>
