@@ -4,7 +4,7 @@ namespace WPWatchdog\Agent\Http;
 
 class Queue
 {
-    private const TRANSIENT_KEY = 'wp_watchdog_offline_queue';
+    private const TRANSIENT_KEY = 'site_watchdog_offline_queue';
 
     public function add(array $payload): void
     {

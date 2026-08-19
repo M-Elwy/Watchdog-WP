@@ -1,30 +1,30 @@
 <?php
 
 /**
- * Plugin Name: WordPress Watchdog
- * Plugin URI: https://github.com/wordpress-dev/wp-watchdog
- * Description: WordPress Agent plugin for WordPress Watchdog.
+ * Plugin Name: Site Watchdog
+ * Plugin URI: https://github.com/wordpress-dev/site-watchdog
+ * Description: WordPress Agent plugin for Site Watchdog.
  * Version: 1.0.0
- * Author: WordPress Watchdog
- * Text Domain: wp-watchdog
+ * Author: Site Watchdog
+ * Text Domain: site-watchdog
  */
 
 defined('ABSPATH') || exit;
 
-if (!defined('WP_WATCHDOG_VERSION')) {
-    define('WP_WATCHDOG_VERSION', '1.0.0');
+if (!defined('SITE_WATCHDOG_VERSION')) {
+    define('SITE_WATCHDOG_VERSION', '1.0.0');
 }
 
-if (!defined('WP_WATCHDOG_PATH')) {
-    define('WP_WATCHDOG_PATH', plugin_dir_path(__FILE__));
+if (!defined('SITE_WATCHDOG_PATH')) {
+    define('SITE_WATCHDOG_PATH', plugin_dir_path(__FILE__));
 }
 
-if (!defined('WP_WATCHDOG_API_URL')) {
-    define('WP_WATCHDOG_API_URL', 'https://saas-wd.aidly.net');
+if (!defined('SITE_WATCHDOG_API_URL')) {
+    define('SITE_WATCHDOG_API_URL', 'https://saas-wd.aidly.net');
 }
 
-if (!defined('WP_WATCHDOG_API_VERSION')) {
-    define('WP_WATCHDOG_API_VERSION', 'v1');
+if (!defined('SITE_WATCHDOG_API_VERSION')) {
+    define('SITE_WATCHDOG_API_VERSION', 'v1');
 }
 
 spl_autoload_register(static function ($class): void {
@@ -35,7 +35,7 @@ spl_autoload_register(static function ($class): void {
     }
 
     $relative_class = substr($class, strlen($prefix));
-    $file = WP_WATCHDOG_PATH . 'src/' . str_replace('\\', '/', $relative_class) . '.php';
+    $file = SITE_WATCHDOG_PATH . 'src/' . str_replace('\\', '/', $relative_class) . '.php';
 
     if (is_readable($file)) {
         require_once $file;
@@ -50,9 +50,9 @@ $send_plugin_state_event = static function (string $event_type): void {
     $client->dispatch([
         'event_type' => $event_type,
         'timestamp' => gmdate('c'),
-        'site_id' => get_option('wp_watchdog_site_id', ''),
+        'site_id' => get_option('site_watchdog_site_id', ''),
         'payload' => [
-            'plugin' => 'wp-watchdog',
+            'plugin' => 'site-watchdog',
             'status' => $event_type === 'plugin_activated' ? 'activated' : 'deactivated',
         ],
     ], false, '/events/ingest');

@@ -4,7 +4,7 @@ namespace WPWatchdog\Agent\Admin;
 
 class IncidentsView
 {
-    private const CACHE_KEY = 'wp_watchdog_cached_incidents';
+    private const CACHE_KEY = 'site_watchdog_cached_incidents';
     private const CACHE_TTL = 60;
 
     public function render(): void
@@ -64,13 +64,13 @@ class IncidentsView
             return $cached;
         }
 
-        $api_key = get_option('wp_watchdog_api_key', '');
+        $api_key = get_option('site_watchdog_api_key', '');
         if ('' === $api_key) {
             return [];
         }
 
         $response = wp_remote_get(
-            WP_WATCHDOG_API_URL . '/' . WP_WATCHDOG_API_VERSION . '/sites/incidents',
+            SITE_WATCHDOG_API_URL . '/' . SITE_WATCHDOG_API_VERSION . '/sites/incidents',
             [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $api_key,

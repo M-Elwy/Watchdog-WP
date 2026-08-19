@@ -7,7 +7,7 @@ use WPWatchdog\Agent\Sanitizer;
 
 class Client
 {
-    public function dispatch(array $payload, bool $queue_on_failure = true, string $endpoint = '/' . WP_WATCHDOG_API_VERSION . '/events/ingest'): bool
+    public function dispatch(array $payload, bool $queue_on_failure = true, string $endpoint = '/' . SITE_WATCHDOG_API_VERSION . '/events/ingest'): bool
     {
         $sanitized = Sanitizer::clean_payload($payload);
 
@@ -16,8 +16,8 @@ class Client
             return false;
         }
 
-        $api_key = get_option('wp_watchdog_api_key', '');
-        $is_verified = (bool) get_option('wp_watchdog_api_key_verified', false);
+        $api_key = get_option('site_watchdog_api_key', '');
+        $is_verified = (bool) get_option('site_watchdog_api_key_verified', false);
         if ('' === $api_key || !$is_verified) {
             return false;
         }
@@ -32,12 +32,12 @@ class Client
             'blocking' => false,
         ];
 
-        $response = wp_remote_post(WP_WATCHDOG_API_URL . $endpoint, $request_args);
+        $response = wp_remote_post(SITE_WATCHDOG_API_URL . $endpoint, $request_args);
         $response_code = wp_remote_retrieve_response_code($response);
 
         if (is_wp_error($response) || 200 > (int) $response_code || 299 < (int) $response_code) {
             if (401 === (int) $response_code) {
-                update_option('wp_watchdog_api_key_verified', false, false);
+                update_option('site_watchdog_api_key_verified', false, false);
                 error_log('Unauthorized site API key; event delivery paused.');
 
                 return false;

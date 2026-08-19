@@ -81,7 +81,7 @@ class ErrorTrapper
         return [
             'event_type' => $type,
             'timestamp' => gmdate('c'),
-            'environment' => get_option('wp_watchdog_environment', 'production'),
+            'environment' => get_option('site_watchdog_environment', 'production'),
             'payload' => $context,
         ];
     }

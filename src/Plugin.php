@@ -39,9 +39,9 @@ class Plugin
     {
         wp_enqueue_script(
             'wp-watchdog-frontend',
-            plugins_url('assets/js/watchdog-frontend.js', WP_WATCHDOG_PATH . 'wp-watchdog.php'),
+            plugins_url('assets/js/watchdog-frontend.js', SITE_WATCHDOG_PATH . 'wp-watchdog.php'),
             [],
-            WP_WATCHDOG_VERSION,
+            SITE_WATCHDOG_VERSION,
             true
         );
     }

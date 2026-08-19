@@ -8,15 +8,15 @@ class Heartbeat
 {
     public function register(): void
     {
-        if (!wp_next_scheduled('wp_watchdog_retry_queue')) {
-            wp_schedule_event(time(), '15minutes', 'wp_watchdog_retry_queue');
+        if (!wp_next_scheduled('site_watchdog_retry_queue')) {
+            wp_schedule_event(time(), '15minutes', 'site_watchdog_retry_queue');
         }
 
-        add_action('wp_watchdog_retry_queue', [$this, 'run_queue_flush']);
-        add_action('wp_watchdog_heartbeat', [$this, 'send_ping']);
+        add_action('site_watchdog_retry_queue', [$this, 'run_queue_flush']);
+        add_action('site_watchdog_heartbeat', [$this, 'send_ping']);
 
-        if (!wp_next_scheduled('wp_watchdog_heartbeat')) {
-            wp_schedule_event(time(), '15minutes', 'wp_watchdog_heartbeat');
+        if (!wp_next_scheduled('site_watchdog_heartbeat')) {
+            wp_schedule_event(time(), '15minutes', 'site_watchdog_heartbeat');
         }
     }
 
@@ -32,7 +32,7 @@ class Heartbeat
         $client->dispatch([
             'event_type' => 'site_ping',
             'timestamp' => gmdate('c'),
-            'site_id' => get_option('wp_watchdog_site_id', ''),
+            'site_id' => get_option('site_watchdog_site_id', ''),
             'payload' => [
                 'wp_version' => get_bloginfo('version'),
                 'php_version' => PHP_VERSION,

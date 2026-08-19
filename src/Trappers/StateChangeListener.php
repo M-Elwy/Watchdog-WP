@@ -63,7 +63,7 @@ class StateChangeListener
         return [
             'event_type' => 'state_change',
             'timestamp' => gmdate('c'),
-            'environment' => get_option('wp_watchdog_environment', 'production'),
+            'environment' => get_option('site_watchdog_environment', 'production'),
             'payload' => $context,
         ];
     }

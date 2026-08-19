@@ -19,7 +19,7 @@ class JsErrorEndpoint
     public function register(): void
     {
         add_action('rest_api_init', function (): void {
-            register_rest_route('wp-watchdog/' . WP_WATCHDOG_API_VERSION, '/js-error', [
+            register_rest_route('site-watchdog/' . SITE_WATCHDOG_API_VERSION, '/js-error', [
                 'methods' => 'POST',
                 'callback' => [$this, 'handle_request'],
                 'permission_callback' => '__return_true',
@@ -36,7 +36,7 @@ class JsErrorEndpoint
         $forward_payload = [
             'event_type' => 'js_error',
             'timestamp' => gmdate('c'),
-            'environment' => get_option('wp_watchdog_environment', 'production'),
+            'environment' => get_option('site_watchdog_environment', 'production'),
             'payload' => $sanitized,
         ];
 
