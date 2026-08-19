@@ -36,7 +36,8 @@ class StateChangeListener
     {
         $this->dispatch($this->build_payload([
             'action' => 'plugin_activated',
-            'target' => $plugin,
+            'target' => $this->resolve_plugin_name($plugin),
+            'details' => ['plugin_slug' => $this->resolve_plugin_slug($plugin)],
         ]));
     }
 
@@ -44,7 +45,8 @@ class StateChangeListener
     {
         $this->dispatch($this->build_payload([
             'action' => 'plugin_deactivated',
-            'target' => $plugin,
+            'target' => $this->resolve_plugin_name($plugin),
+            'details' => ['plugin_slug' => $this->resolve_plugin_slug($plugin)],
         ]));
     }
 
@@ -83,6 +85,24 @@ class StateChangeListener
         }
 
         return $type;
+    }
+
+    protected function resolve_plugin_name(string $plugin): string
+    {
+        if (!function_exists('get_plugin_data')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        $plugin_path = WP_PLUGIN_DIR . '/' . ltrim($plugin, '/');
+        $plugin_data = is_readable($plugin_path) ? get_plugin_data($plugin_path, false, false) : [];
+
+        return !empty($plugin_data['Name']) ? (string) $plugin_data['Name'] : $plugin;
+    }
+
+    // Stable identifier (unlike the display name) for matching incidents to the plugin that changed
+    protected function resolve_plugin_slug(string $plugin): string
+    {
+        return str_contains($plugin, '/') ? dirname($plugin) : basename($plugin, '.php');
     }
 
     protected function dispatch(array $payload): void

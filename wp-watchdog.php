@@ -41,7 +41,30 @@ spl_autoload_register(static function ($class): void {
         require_once $file;
     }
 });
+$send_plugin_state_event = static function (string $event_type): void {
+    if (!class_exists('\WPWatchdog\Agent\Http\Client')) {
+        return;
+    }
 
+    $client = new \WPWatchdog\Agent\Http\Client();
+    $client->dispatch([
+        'event_type' => $event_type,
+        'timestamp' => gmdate('c'),
+        'site_id' => get_option('wp_watchdog_site_id', ''),
+        'payload' => [
+            'plugin' => 'wp-watchdog',
+            'status' => $event_type === 'plugin_activated' ? 'activated' : 'deactivated',
+        ],
+    ], false, '/events/ingest');
+};
+
+register_activation_hook(__FILE__, static function () use ($send_plugin_state_event): void {
+    $send_plugin_state_event('plugin_activated');
+});
+
+register_deactivation_hook(__FILE__, static function () use ($send_plugin_state_event): void {
+    $send_plugin_state_event('plugin_deactivated');
+});
 add_action('plugins_loaded', static function (): void {
     $plugin = new \WPWatchdog\Agent\Plugin();
     $plugin->register();
