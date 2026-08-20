@@ -25,8 +25,8 @@ class StateChangeListener
     {
         $payload = $this->build_payload([
             'action' => 'update_completed',
-            'type' => $this->resolve_upgrader_type($upgrader, $hook_extra),
-            'hook_extra' => $hook_extra,
+            'target' => $this->resolve_upgrader_type($upgrader, $hook_extra),
+            'details' => $hook_extra,
         ]);
 
         $this->dispatch($payload);
@@ -50,11 +50,12 @@ class StateChangeListener
         ]));
     }
 
-    public function handle_theme_switch(string $new_name, $new_theme): void
+    public function handle_theme_switch(string $new_name, $new_theme, $old_theme): void
     {
         $this->dispatch($this->build_payload([
             'action' => 'theme_switched',
             'target' => $new_name,
+            'details' => ['old_theme' => $old_theme->get('Name'), 'new_theme' => $new_name],
         ]));
     }
 
@@ -70,21 +71,19 @@ class StateChangeListener
 
     protected function resolve_upgrader_type($upgrader, array $hook_extra): string
     {
-        $type = 'unknown';
+        if (!empty($hook_extra['type'])) {
+            return (string) $hook_extra['type'];
+        }
 
-        if (!empty($hook_extra['plugin'])) {
+        if (!empty($hook_extra['plugin']) || !empty($hook_extra['plugins'])) {
             return 'plugin';
         }
 
-        if (!empty($hook_extra['theme'])) {
+        if (!empty($hook_extra['theme']) || !empty($hook_extra['themes'])) {
             return 'theme';
         }
 
-        if (!empty($hook_extra['bulk']) && true === $hook_extra['bulk']) {
-            return 'core';
-        }
-
-        return $type;
+        return 'unknown';
     }
 
     protected function resolve_plugin_name(string $plugin): string
