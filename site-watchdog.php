@@ -50,7 +50,6 @@ $send_plugin_state_event = static function (string $event_type): void {
     $client->dispatch([
         'event_type' => $event_type,
         'timestamp' => gmdate('c'),
-        'site_id' => get_option('site_watchdog_site_id', ''),
         'payload' => [
             'plugin' => 'site-watchdog',
             'status' => $event_type === 'plugin_activated' ? 'activated' : 'deactivated',

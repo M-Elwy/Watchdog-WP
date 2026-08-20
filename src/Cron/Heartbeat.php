@@ -32,7 +32,6 @@ class Heartbeat
         $client->dispatch([
             'event_type' => 'site_ping',
             'timestamp' => gmdate('c'),
-            'site_id' => get_option('site_watchdog_site_id', ''),
             'payload' => [
                 'wp_version' => get_bloginfo('version'),
                 'php_version' => PHP_VERSION,
