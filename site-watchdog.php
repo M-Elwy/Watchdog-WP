@@ -42,19 +42,7 @@ spl_autoload_register(static function ($class): void {
     }
 });
 $send_plugin_state_event = static function (string $event_type): void {
-    if (!class_exists('\WPWatchdog\Agent\Http\Client')) {
-        return;
-    }
-
-    $client = new \WPWatchdog\Agent\Http\Client();
-    $client->dispatch([
-        'event_type' => $event_type,
-        'timestamp' => gmdate('c'),
-        'payload' => [
-            'plugin' => 'site-watchdog',
-            'status' => $event_type === 'plugin_activated' ? 'activated' : 'deactivated',
-        ],
-    ], false, '/events/ingest');
+    \WPWatchdog\Agent\Api::send_plugin_state_event($event_type);
 };
 
 register_activation_hook(__FILE__, static function () use ($send_plugin_state_event): void {
@@ -68,3 +56,17 @@ add_action('plugins_loaded', static function (): void {
     $plugin = new \WPWatchdog\Agent\Plugin();
     $plugin->register();
 });
+
+if (!function_exists('watchdog_capture_event')) {
+    function watchdog_capture_event(string $action, array $details = [], ?string $target = null): bool
+    {
+        return \WPWatchdog\Agent\Api::capture_event($action, $details, $target);
+    }
+}
+
+if (!function_exists('watchdog_capture_incident')) {
+    function watchdog_capture_incident(string $details, string $severity = 'error', ?string $source = null, ?string $channel = null): bool
+    {
+        return \WPWatchdog\Agent\Api::capture_incident($details, $severity, $source, $channel);
+    }
+}

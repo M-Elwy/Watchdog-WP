@@ -1,0 +1,39 @@
+=== Website Watchdog - PHP Error & Incident Alerts ===
+Contributors: your_wp_username
+Tags: error log, slack notifications, debugging, monitoring, fatal error
+Requires at least: 6.0
+Tested up to: 6.6
+Requires PHP: 7.4
+Stable tag: 1.0.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+Lightweight watchdog agent that captures PHP fatal errors and WordPress state changes, sending decision-support alerts to Slack.
+
+== Description ==
+
+Website Watchdog monitors your WordPress site for PHP fatal errors, unhandled exceptions, and critical state changes (like plugin updates), correlating them into real-time decision-support alerts delivered straight to Slack.
+
+= Third-Party Service Disclosure =
+
+This plugin is a client agent that relies on an external SaaS API to process incident telemetry, correlate root causes, deduplicate error storms, and dispatch alerts to external channels.
+
+* **Service Name:** Website Watchdog API
+* **Service URL:** https://api.websitewatchdog.io
+* **Terms of Service:** https://websitewatchdog.io/terms
+* **Privacy Policy:** https://websitewatchdog.io/privacy
+
+**What Data Is Collected and Transmitted:**
+To deliver accurate incident alerts and root-cause analysis, the plugin transmits the following data to `https://api.websitewatchdog.io` when triggered:
+* **Error Telemetry:** PHP error messages, file names, line numbers, and sanitized stack traces.
+* **Environment Context:** Active PHP version, WordPress core version, and active plugin/theme list.
+* **System Events:** WordPress hooks indicating plugin, theme, or core updates and activations.
+* **Request Metadata:** Target URL where the error occurred, HTTP status code, and current user role.
+
+*Note: Sensitive data (passwords, authentication tokens, API keys, credit card numbers, and raw POST data) is automatically scrubbed locally on your server before any payload is transmitted to our API.*
+
+== Installation ==
+
+1. Upload the `website-watchdog` folder to the `/wp-content/plugins/` directory (or install directly via the WordPress Plugin Directory).
+2. Activate the plugin through the 'Plugins' menu in WordPress.
+3. Navigate to **Settings > Website Watchdog** and enter your API key generated from your Website Watchdog dashboard.
