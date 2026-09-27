@@ -1,5 +1,5 @@
 {
-    "name": "wp-watchdog/agent-plugin",
+    "name": "site-watchdog/agent-plugin",
     "description": "WordPress Watchdog WordPress Agent plugin",
     "type": "wordpress-plugin",
     "autoload": {

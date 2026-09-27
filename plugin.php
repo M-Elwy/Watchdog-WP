@@ -1,2 +1,2 @@
 <?php
-require_once __DIR__ . '/wp-watchdog.php';
+require_once __DIR__ . '/site-watchdog.php';

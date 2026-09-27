@@ -82,10 +82,10 @@ class Settings
     public function add_menu_page(): void
     {
         add_menu_page(
-            __('Site Watchdog', 'wp-watchdog'),
-            __('Site Watchdog', 'wp-watchdog'),
+            __('Site Watchdog', 'site-watchdog'),
+            __('Site Watchdog', 'site-watchdog'),
             'manage_options',
-            'wp-watchdog-settings',
+            'site-watchdog-settings',
             [$this, 'render_page'],
             'dashicons-shield'
         );
@@ -97,7 +97,7 @@ class Settings
 
         add_settings_section(
             'site_watchdog_main',
-            __('Main Settings', 'wp-watchdog'),
+            __('Main Settings', 'site-watchdog'),
             [$this, 'render_section_intro'],
             'site_watchdog_settings_group'
         );
@@ -124,7 +124,7 @@ class Settings
 
         add_settings_field(
             'site_watchdog_api_key',
-            __('API Key', 'wp-watchdog'),
+            __('API Key', 'site-watchdog'),
             [$this, 'render_api_key_field'],
             'site_watchdog_settings_group',
             'site_watchdog_main'
@@ -132,7 +132,7 @@ class Settings
 
         add_settings_field(
             'site_watchdog_environment',
-            __('Environment', 'wp-watchdog'),
+            __('Environment', 'site-watchdog'),
             [$this, 'render_environment_field'],
             'site_watchdog_settings_group',
             'site_watchdog_main'
@@ -156,7 +156,7 @@ class Settings
 
     public function render_section_intro(): void
     {
-        echo '<p>' . esc_html__('Configure the connection to Site Watchdog.', 'wp-watchdog') . '</p>';
+        echo '<p>' . esc_html__('Configure the connection to Site Watchdog.', 'site-watchdog') . '</p>';
     }
 
     public function render_api_key_field(): void
@@ -164,7 +164,7 @@ class Settings
         $value = get_option('site_watchdog_api_key', '');
 
         echo '<input type="text" id="site_watchdog_api_key" name="site_watchdog_api_key" value="' . esc_attr($value) . '" class="regular-text" />';
-        echo '<p class="description">' . esc_html__('Enter the API key provided by Site Watchdog.', 'wp-watchdog') . '</p>';
+        echo '<p class="description">' . esc_html__('Enter the API key provided by Site Watchdog.', 'site-watchdog') . '</p>';
     }
 
     public function render_environment_field(): void
@@ -189,28 +189,28 @@ class Settings
             return;
         }
 
-        echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__('Site Watchdog:', 'wp-watchdog') . '</strong> ' . esc_html__('Your API key is not verified, so event delivery is paused until the key is updated and re-validated.', 'wp-watchdog') . '</p></div>';
+        echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__('Site Watchdog:', 'site-watchdog') . '</strong> ' . esc_html__('Your API key is not verified, so event delivery is paused until the key is updated and re-validated.', 'site-watchdog') . '</p></div>';
     }
 
     public function render_page(): void
     {
         if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'wp-watchdog'));
+            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'site-watchdog'));
         }
 
 ?>
         <div class="wrap">
-            <h1><?php echo esc_html__('Site Watchdog Settings', 'wp-watchdog'); ?></h1>
+            <h1><?php echo esc_html__('Site Watchdog Settings', 'site-watchdog'); ?></h1>
             <?php if (!self::is_api_key_verified() && '' !== get_option('site_watchdog_api_key', '')) : ?>
                 <div class="notice notice-warning inline">
-                    <p><?php echo esc_html__('Warning: this API key is not verified. Events are paused until the key is corrected and re-verified.', 'wp-watchdog'); ?></p>
+                    <p><?php echo esc_html__('Warning: this API key is not verified. Events are paused until the key is corrected and re-verified.', 'site-watchdog'); ?></p>
                 </div>
             <?php endif; ?>
             <?php settings_errors('site_watchdog_api_key'); ?>
             <form method="post" action="options.php">
                 <?php settings_fields('site_watchdog_settings_group'); ?>
                 <?php do_settings_sections('site_watchdog_settings_group'); ?>
-                <?php submit_button(__('Save Settings', 'wp-watchdog')); ?>
+                <?php submit_button(__('Save Settings', 'site-watchdog')); ?>
             </form>
             <?php $this->incidents_view->render(); ?>
         </div>

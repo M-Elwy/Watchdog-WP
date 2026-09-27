@@ -1,6 +1,6 @@
 (function () {
     if (!window || !navigator || !window.location) { return; }
-    var endpoint = '/wp-json/wp-watchdog/v1/js-error';
+    var endpoint = '/wp-json/site-watchdog/v1/js-error';
     var ignored = /chrome-extension|moz-extension|safari-extension|edge-extension|script error|ResizeObserver loop|csp/i;
     function send(payload) {
         try {

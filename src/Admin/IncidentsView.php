@@ -18,22 +18,22 @@ class IncidentsView
         $incidents = $this->get_incidents();
 
         echo '<div class="wrap">';
-        echo '<h1 class="wp-heading-inline">' . esc_html__('Incident History', 'wp-watchdog') . '</h1> ';
-        echo '<a href="' . esc_url(add_query_arg('refresh_incidents', '1')) . '" class="page-title-action">' . esc_html__('Refresh', 'wp-watchdog') . '</a>';
+        echo '<h1 class="wp-heading-inline">' . esc_html__('Incident History', 'site-watchdog') . '</h1> ';
+        echo '<a href="' . esc_url(add_query_arg('refresh_incidents', '1')) . '" class="page-title-action">' . esc_html__('Refresh', 'site-watchdog') . '</a>';
         echo '<hr class="wp-header-end" />';
 
         if (empty($incidents)) {
-            echo '<p>' . esc_html__('No incident history available yet.', 'wp-watchdog') . '</p>';
+            echo '<p>' . esc_html__('No incident history available yet.', 'site-watchdog') . '</p>';
             echo '</div>';
             return;
         }
 
         echo '<table class="wp-list-table widefat fixed striped">';
-        echo '<thead><tr><th>' . esc_html__('Severity / Type', 'wp-watchdog') . '</th><th>' . esc_html__('Error Message & Location', 'wp-watchdog') . '</th><th>' . esc_html__('Occurrences', 'wp-watchdog') . '</th><th>' . esc_html__('Last Seen', 'wp-watchdog') . '</th><th>' . esc_html__('Status', 'wp-watchdog') . '</th></tr></thead>';
+        echo '<thead><tr><th>' . esc_html__('Severity / Type', 'site-watchdog') . '</th><th>' . esc_html__('Error Message & Location', 'site-watchdog') . '</th><th>' . esc_html__('Occurrences', 'site-watchdog') . '</th><th>' . esc_html__('Last Seen', 'site-watchdog') . '</th><th>' . esc_html__('Status', 'site-watchdog') . '</th></tr></thead>';
         echo '<tbody>';
 
         foreach ($incidents as $incident) {
-            $message = isset($incident['message']) ? (string) $incident['message'] : __('Unknown error', 'wp-watchdog');
+            $message = isset($incident['message']) ? (string) $incident['message'] : __('Unknown error', 'site-watchdog');
             $location = isset($incident['location']) ? (string) $incident['location'] : '';
             $type = isset($incident['type']) ? (string) $incident['type'] : 'Unknown';
             $severity = isset($incident['severity']) ? (string) $incident['severity'] : '';
@@ -138,7 +138,7 @@ class IncidentsView
     private function relative_time(string $timestamp): string
     {
         if ('' === trim($timestamp)) {
-            return __('Recently seen', 'wp-watchdog');
+            return __('Recently seen', 'site-watchdog');
         }
 
         $time = strtotime($timestamp);
@@ -146,7 +146,7 @@ class IncidentsView
             return $timestamp;
         }
 
-        return sprintf(__('about %s ago', 'wp-watchdog'), human_time_diff($time));
+        return sprintf(__('about %s ago', 'site-watchdog'), human_time_diff($time));
     }
 
     private function render_stack_trace($stack_trace): string

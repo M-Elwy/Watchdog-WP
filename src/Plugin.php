@@ -38,8 +38,8 @@ class Plugin
     public function enqueue_frontend_script(): void
     {
         wp_enqueue_script(
-            'wp-watchdog-frontend',
-            plugins_url('assets/js/watchdog-frontend.js', SITE_WATCHDOG_PATH . 'wp-watchdog.php'),
+            'site-watchdog-frontend',
+            plugins_url('assets/js/watchdog-frontend.js', SITE_WATCHDOG_PATH . 'site-watchdog.php'),
             [],
             SITE_WATCHDOG_VERSION,
             true
