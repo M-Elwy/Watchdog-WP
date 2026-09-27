@@ -14,11 +14,14 @@ class Api
 
         $client = new Client();
         $client->dispatch([
-            'event_type' => $event_type,
+            'site_id' => get_option('site_watchdog_site_id', ''),
+            'environment' => get_option('site_watchdog_environment', 'production'),
+            'event_type' => 'state_change',
             'timestamp' => gmdate('c'),
             'payload' => [
-                'plugin' => 'site-watchdog',
-                'status' => $event_type === 'plugin_activated' ? 'activated' : 'deactivated',
+                'action' => $event_type,
+                'target' => 'Site Watchdog',
+                'details' => ['plugin_slug' => 'site-watchdog'],
             ],
         ]);
     }
