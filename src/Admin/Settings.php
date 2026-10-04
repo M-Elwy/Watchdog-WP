@@ -2,6 +2,8 @@
 
 namespace WPWatchdog\Agent\Admin;
 
+use WPWatchdog\Agent\Http\Client;
+
 class Settings
 {
     protected $incidents_view;
@@ -39,35 +41,17 @@ class Settings
             return '';
         }
 
-        $version_path = '/' . SITE_WATCHDOG_API_VERSION;
-        $verify_url = rtrim(SITE_WATCHDOG_API_URL, '/') . (false !== strpos(SITE_WATCHDOG_API_URL, $version_path) ? '/sites/verify' : $version_path . '/sites/verify');
-        error_log('Verifying API Key with Watchdog server: ' . $verify_url);
-        $response = wp_remote_post($verify_url, [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $api_key,
-                'Content-Type' => 'application/json',
-            ],
-            'timeout' => 10,
-        ]);
+        $result = (new Client())->check_key($api_key);
 
-        if (is_wp_error($response) || 200 !== (int) wp_remote_retrieve_response_code($response)) {
+        if (true !== $result['valid']) {
             self::mark_api_key_verified(false);
-            error_log('Failed to verify API Key with Watchdog server: ' . (is_wp_error($response) ? $response->get_error_message() : 'HTTP ' . wp_remote_retrieve_response_code($response)));
+            error_log('Failed to verify API Key with Watchdog server: ' . $result['error']);
             add_settings_error('site_watchdog_api_key', 'invalid_key', __('Could not verify API Key with Watchdog server.', 'site-watchdog'));
 
             return $old_value;
         }
 
-        $body = json_decode(wp_remote_retrieve_body($response), true);
-        $site_id = isset($body['data']['site_id']) ? sanitize_text_field((string) $body['data']['site_id']) : '';
-        error_log('Watchdog server response: ' . wp_remote_retrieve_body($response) . ', site_id: ' . $site_id);
-        if ('' === $site_id) {
-            self::mark_api_key_verified(false);
-            add_settings_error('site_watchdog_api_key', 'invalid_key', __('Could not verify API Key with Watchdog server.', 'site-watchdog'));
-
-            return $old_value;
-        }
-
+        $site_id = $result['site_id'];
         remove_filter('pre_update_option_site_watchdog_api_key', [$this, 'validate_api_key_option']);
         update_option('site_watchdog_api_key', $api_key);
         add_filter('pre_update_option_site_watchdog_api_key', [$this, 'validate_api_key_option'], 10, 3);

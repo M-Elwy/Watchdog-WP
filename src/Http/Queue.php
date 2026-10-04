@@ -23,6 +23,13 @@ class Queue
             return [];
         }
 
+        $client = new Client();
+
+        // Verify once before retrying; keep the queue untouched if the key is invalid or the server is down.
+        if (true !== $client->verify()) {
+            return $queue;
+        }
+
         $remaining = [];
 
         foreach ($queue as $item) {
@@ -30,7 +37,6 @@ class Queue
                 continue;
             }
 
-            $client = new Client();
             $result = $client->dispatch($item, true);
 
             if ($result) {
