@@ -20,7 +20,7 @@ if (!defined('SITE_WATCHDOG_PATH')) {
 }
 
 if (!defined('SITE_WATCHDOG_API_URL')) {
-    define('SITE_WATCHDOG_API_URL', 'https://saas-wd.aidly.net/api');
+    define('SITE_WATCHDOG_API_URL', 'https://wd.aidly.net/api');
 }
 
 if (!defined('SITE_WATCHDOG_API_VERSION')) {
