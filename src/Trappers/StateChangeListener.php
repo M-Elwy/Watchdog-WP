@@ -23,13 +23,26 @@ class StateChangeListener
 
     public function handle_upgrader_complete($upgrader, $hook_extra): void
     {
+        $target = $this->resolve_upgrader_type($upgrader, $hook_extra);
+
         $payload = $this->build_payload([
-            'action' => 'update_completed',
-            'target' => $this->resolve_upgrader_type($upgrader, $hook_extra),
+            'action' => $this->resolve_upgrader_action($target),
+            'target' => $target,
             'details' => $hook_extra,
         ]);
 
         $this->dispatch($payload);
+    }
+
+    protected function resolve_upgrader_action(string $target): string
+    {
+        $actions = [
+            'core' => 'core_updated',
+            'plugin' => 'plugin_updated',
+            'theme' => 'theme_updated',
+        ];
+
+        return $actions[$target] ?? 'update_completed';
     }
 
     public function handle_plugin_activation(string $plugin): void
