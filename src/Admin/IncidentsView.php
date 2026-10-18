@@ -6,21 +6,31 @@ class IncidentsView
 {
     private const CACHE_KEY = 'site_watchdog_cached_incidents';
     private const CACHE_TTL = 60;
+    private const PAGE_SIZE = 20;
+    private const REQUEST_TIMEOUT = 5;
 
     public function render(): void
     {
         $refresh = isset($_GET['refresh_incidents']) && '1' === $_GET['refresh_incidents'];
+        $page = isset($_GET['incident_page']) ? max(1, absint($_GET['incident_page'])) : 1;
 
         if ($refresh) {
-            delete_transient(self::CACHE_KEY);
+            delete_transient($this->cache_key($page));
         }
 
-        $incidents = $this->get_incidents();
+        $result = $this->get_incidents($page);
+        $incidents = $result['incidents'];
 
         echo '<div class="wrap">';
         echo '<h1 class="wp-heading-inline">' . esc_html__('Incident History', 'site-watchdog') . '</h1> ';
-        echo '<a href="' . esc_url(add_query_arg('refresh_incidents', '1')) . '" class="page-title-action">' . esc_html__('Refresh', 'site-watchdog') . '</a>';
+        echo '<a href="' . esc_url(add_query_arg(['tab' => 'incidents', 'refresh_incidents' => '1'])) . '" class="page-title-action">' . esc_html__('Refresh', 'site-watchdog') . '</a>';
         echo '<hr class="wp-header-end" />';
+
+        if ('' !== $result['error']) {
+            echo '<div class="notice notice-error inline"><p>' . esc_html($result['error']) . '</p></div>';
+            echo '</div>';
+            return;
+        }
 
         if (empty($incidents)) {
             echo '<p>' . esc_html__('No incident history available yet.', 'site-watchdog') . '</p>';
@@ -53,48 +63,104 @@ class IncidentsView
         }
 
         echo '</tbody></table>';
+        $this->render_pagination($result['pagination']);
         echo '<script>document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll(".incident-row").forEach(function(row){row.addEventListener("click",function(){var next=row.parentElement.rows[row.rowIndex];if(next&&next.classList.contains("incident-details")){next.style.display=next.style.display==="none"?"table-row":"none";}});});});</script>';
         echo '</div>';
     }
 
-    private function get_incidents(): array
+    private function get_incidents(int $page): array
     {
-        $cached = get_transient(self::CACHE_KEY);
+        $cache_key = $this->cache_key($page);
+        $cached = get_transient($cache_key);
         if (is_array($cached)) {
             return $cached;
         }
 
         $api_key = get_option('site_watchdog_api_key', '');
         if ('' === $api_key) {
-            return [];
+            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], __('Configure an API key to view incident history.', 'site-watchdog'));
         }
 
+        $url = add_query_arg(['limit' => self::PAGE_SIZE, 'page' => $page], SITE_WATCHDOG_API_URL . '/' . SITE_WATCHDOG_API_VERSION . '/sites/incidents');
         $response = wp_remote_get(
-            SITE_WATCHDOG_API_URL . '/' . SITE_WATCHDOG_API_VERSION . '/sites/incidents',
+            $url,
             [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $api_key,
                     'Content-Type' => 'application/json',
                 ],
-                'timeout' => 10,
+                'timeout' => self::REQUEST_TIMEOUT,
             ]
         );
 
         if (is_wp_error($response)) {
-            return [];
+            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], __('Could not load incident history. Please try again.', 'site-watchdog'));
+        }
+
+        if (200 !== (int) wp_remote_retrieve_response_code($response)) {
+            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], __('The incident history service returned an error. Please try again.', 'site-watchdog'));
         }
 
         $body = wp_remote_retrieve_body($response);
         $decoded = json_decode($body, true);
 
-        if (!is_array($decoded)) {
-            return [];
+        if (!is_array($decoded) || !isset($decoded['data']['incidents']) || !is_array($decoded['data']['incidents'])) {
+            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], __('The incident history response was invalid.', 'site-watchdog'));
         }
 
-        $incidents = isset($decoded['incidents']) && is_array($decoded['incidents']) ? $decoded['incidents'] : $decoded;
-        set_transient(self::CACHE_KEY, $incidents, self::CACHE_TTL);
+        $incidents = array_map([$this, 'normalize_incident'], $decoded['data']['incidents']);
+        $pagination = isset($decoded['data']['pagination']) && is_array($decoded['data']['pagination'])
+            ? $decoded['data']['pagination']
+            : ['total' => count($incidents), 'page' => $page, 'pages' => 1];
+        $result = $this->result($incidents, $pagination, '');
+        set_transient($cache_key, $result, self::CACHE_TTL);
 
-        return $incidents;
+        return $result;
+    }
+
+    private function cache_key(int $page): string
+    {
+        return self::CACHE_KEY . '_' . $page;
+    }
+
+    private function result(array $incidents, array $pagination, string $error): array
+    {
+        return ['incidents' => $incidents, 'pagination' => $pagination, 'error' => $error];
+    }
+
+    private function normalize_incident(array $incident): array
+    {
+        return [
+            'message' => (string) ($incident['message'] ?? __('Unknown error', 'site-watchdog')),
+            'location' => isset($incident['file'], $incident['line']) ? $incident['file'] . ':' . $incident['line'] : '',
+            'type' => (string) ($incident['error_type'] ?? 'Unknown'),
+            'severity' => (string) ($incident['severity'] ?? ''),
+            'occurrences' => (int) ($incident['occurrence_count'] ?? 0),
+            'last_seen' => (string) ($incident['last_seen_at'] ?? ''),
+            'status' => (string) ($incident['status'] ?? 'new'),
+            'stack_trace' => [],
+        ];
+    }
+
+    private function render_pagination(array $pagination): void
+    {
+        $pages = max(1, (int) ($pagination['pages'] ?? 1));
+        $page = max(1, (int) ($pagination['page'] ?? 1));
+
+        if ($pages <= 1) {
+            return;
+        }
+
+        echo '<div class="tablenav"><div class="tablenav-pages">';
+        for ($number = 1; $number <= $pages; $number++) {
+            $url = add_query_arg(['tab' => 'incidents', 'incident_page' => $number], admin_url('admin.php'));
+            if ($number === $page) {
+                echo '<span class="paging-input">' . esc_html((string) $number) . '</span> ';
+            } else {
+                echo '<a class="button" href="' . esc_url($url) . '">' . esc_html((string) $number) . '</a> ';
+            }
+        }
+        echo '</div></div>';
     }
 
     private function label_for(string $severity, string $type): string
