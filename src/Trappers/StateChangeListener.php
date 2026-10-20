@@ -18,7 +18,7 @@ class StateChangeListener
         add_action('upgrader_process_complete', [$this, 'handle_upgrader_complete'], 10, 2);
         add_action('activated_plugin', [$this, 'handle_plugin_activation'], 10, 1);
         add_action('deactivated_plugin', [$this, 'handle_plugin_deactivation'], 10, 1);
-        add_action('switch_theme', [$this, 'handle_theme_switch'], 10, 2);
+        add_action('switch_theme', [$this, 'handle_theme_switch'], 10, 3);
     }
 
     public function handle_upgrader_complete($upgrader, $hook_extra): void
