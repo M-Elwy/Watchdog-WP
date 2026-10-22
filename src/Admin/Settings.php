@@ -99,28 +99,10 @@ class Settings
             ]
         );
 
-        register_setting(
-            'site_watchdog_settings_group',
-            'site_watchdog_environment',
-            [
-                'type' => 'string',
-                'sanitize_callback' => [$this, 'sanitize_environment'],
-                'default' => 'production',
-            ]
-        );
-
         add_settings_field(
             'site_watchdog_api_key',
             __('API Key', 'site-watchdog'),
             [$this, 'render_api_key_field'],
-            'site_watchdog_settings_group',
-            'site_watchdog_main'
-        );
-
-        add_settings_field(
-            'site_watchdog_environment',
-            __('Environment', 'site-watchdog'),
-            [$this, 'render_environment_field'],
             'site_watchdog_settings_group',
             'site_watchdog_main'
         );
@@ -131,14 +113,6 @@ class Settings
         $value = is_string($value) ? trim(wp_unslash($value)) : '';
 
         return sanitize_text_field($value);
-    }
-
-    public function sanitize_environment($value): string
-    {
-        $allowed = ['production', 'staging', 'development'];
-        $value = is_string($value) ? strtolower(trim(wp_unslash($value))) : 'production';
-
-        return in_array($value, $allowed, true) ? $value : 'production';
     }
 
     public function render_section_intro(): void
@@ -152,17 +126,6 @@ class Settings
 
         echo '<input type="text" id="site_watchdog_api_key" name="site_watchdog_api_key" value="' . esc_attr($value) . '" class="regular-text" />';
         echo '<p class="description">' . esc_html__('Enter the API key provided by Site Watchdog.', 'site-watchdog') . '</p>';
-    }
-
-    public function render_environment_field(): void
-    {
-        $environment = get_option('site_watchdog_environment', 'production');
-
-        echo '<select id="site_watchdog_environment" name="site_watchdog_environment">';
-        foreach (['production', 'staging', 'development'] as $option) {
-            echo '<option value="' . esc_attr($option) . '" ' . selected($environment, $option, false) . '>' . esc_html(ucfirst($option)) . '</option>';
-        }
-        echo '</select>';
     }
 
     public function render_verification_notice(): void

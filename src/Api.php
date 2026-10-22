@@ -15,7 +15,6 @@ class Api
         $client = new Client();
         $client->dispatch([
             'site_id' => get_option('site_watchdog_site_id', ''),
-            'environment' => get_option('site_watchdog_environment', 'production'),
             'event_type' => 'state_change',
             'timestamp' => gmdate('c'),
             'payload' => [
@@ -45,7 +44,6 @@ class Api
 
         return $client->dispatch([
             'site_id' => get_option('site_watchdog_site_id', ''),
-            'environment' => get_option('site_watchdog_environment', 'production'),
             'event_type' => 'state_change',
             'timestamp' => gmdate('c'),
             'payload' => $payload,
@@ -69,7 +67,6 @@ class Api
 
         return $client->dispatch([
             'site_id' => get_option('site_watchdog_site_id', ''),
-            'environment' => get_option('site_watchdog_environment', 'production'),
             'timestamp' => gmdate('c'),
             'source' => $source ?? 'on_demand',
             'severity' => $severity,

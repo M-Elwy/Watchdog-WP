@@ -26,7 +26,7 @@ This plugin is a client agent that relies on an external SaaS API to process inc
 **What Data Is Collected and Transmitted:**
 To deliver accurate incident alerts and root-cause analysis, the plugin transmits the following data to `https://api.websitewatchdog.io` when triggered:
 * **Error Telemetry:** PHP error messages, file names, line numbers, and sanitized stack traces.
-* **Environment Context:** Active PHP version, WordPress core version, and active plugin/theme list.
+* **Site Context:** Active PHP version, WordPress core version, and active plugin/theme list.
 * **System Events:** WordPress hooks indicating plugin, theme, or core updates and activations.
 * **Request Metadata:** Target URL where the error occurred, HTTP status code, and current user role.
 

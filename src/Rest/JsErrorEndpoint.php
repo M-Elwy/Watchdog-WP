@@ -36,7 +36,6 @@ class JsErrorEndpoint
         $forward_payload = [
             'event_type' => 'js_error',
             'timestamp' => gmdate('c'),
-            'environment' => get_option('site_watchdog_environment', 'production'),
             'payload' => $sanitized,
         ];
 
