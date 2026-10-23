@@ -28,9 +28,11 @@ To deliver accurate incident alerts and root-cause analysis, the plugin transmit
 * **Error Telemetry:** PHP error messages, file names, line numbers, and sanitized stack traces.
 * **Site Context:** Active PHP version, WordPress core version, and active plugin/theme list.
 * **System Events:** WordPress hooks indicating plugin, theme, or core updates and activations.
-* **Request Metadata:** Target URL where the error occurred, HTTP status code, and current user role.
+* **Request Metadata:** URLs included in error telemetry, with query strings removed locally before transmission.
 
-*Note: Sensitive data (passwords, authentication tokens, API keys, credit card numbers, and raw POST data) is automatically scrubbed locally on your server before any payload is transmitted to our API.*
+*Note: Sensitive data (passwords, authentication tokens, API keys, credit card numbers, raw POST data, and URL query parameters) is scrubbed locally on your server before any payload is transmitted to our API. Offline events are capped at 50 items; oldest events are discarded when necessary.*
+
+When the plugin is uninstalled, its settings, offline queue, cached incident transients, and scheduled events are removed.
 
 == Installation ==
 

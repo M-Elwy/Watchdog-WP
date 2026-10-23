@@ -25,14 +25,28 @@ class Sanitizer
 
             if (is_string($value) && 'stack_trace' === strtolower($clean_key)) {
                 $cleaned[$clean_key] = array_map(static function ($entry): string {
-                    return is_string($entry) ? $entry : '[REDACTED]';
+                    return is_string($entry) ? self::clean_url_query($entry) : '[REDACTED]';
                 }, explode("\n", $value));
                 continue;
             }
 
-            $cleaned[$clean_key] = $value;
+            $cleaned[$clean_key] = is_string($value) ? self::clean_url_query($value) : $value;
         }
 
         return $cleaned;
+    }
+
+    private static function clean_url_query(string $value): string
+    {
+        return preg_replace_callback(
+            '~https?://[^\s<>"\']+|(?<![A-Za-z0-9])/[^\s<>"\']*\\?[^\s<>"\']*~i',
+            static function (array $matches): string {
+                $url = $matches[0];
+                $query_position = strpos($url, '?');
+
+                return false === $query_position ? $url : substr($url, 0, $query_position);
+            },
+            $value
+        );
     }
 }

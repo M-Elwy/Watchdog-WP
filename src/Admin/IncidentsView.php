@@ -9,21 +9,40 @@ class IncidentsView
     private const PAGE_SIZE = 20;
     private const REQUEST_TIMEOUT = 5;
 
+    public function handle_refresh(): void
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'site-watchdog'));
+        }
+
+        check_admin_referer('site_watchdog_refresh_incidents');
+
+        $page = isset($_POST['incident_page']) ? max(1, absint(wp_unslash($_POST['incident_page']))) : 1;
+        delete_transient($this->cache_key($page));
+
+        wp_safe_redirect(add_query_arg([
+            'page' => 'site-watchdog-settings',
+            'tab' => 'incidents',
+            'incident_page' => $page,
+        ], admin_url('admin.php')));
+        exit;
+    }
+
     public function render(): void
     {
-        $refresh = isset($_GET['refresh_incidents']) && '1' === $_GET['refresh_incidents'];
         $page = isset($_GET['incident_page']) ? max(1, absint($_GET['incident_page'])) : 1;
-
-        if ($refresh) {
-            delete_transient($this->cache_key($page));
-        }
 
         $result = $this->get_incidents($page);
         $incidents = $result['incidents'];
 
         echo '<div class="wrap">';
         echo '<h1 class="wp-heading-inline">' . esc_html__('Incident History', 'site-watchdog') . '</h1> ';
-        echo '<a href="' . esc_url(add_query_arg(['tab' => 'incidents', 'refresh_incidents' => '1'])) . '" class="page-title-action">' . esc_html__('Refresh', 'site-watchdog') . '</a>';
+        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="display:inline-block;">';
+        echo '<input type="hidden" name="action" value="site_watchdog_refresh_incidents" />';
+        echo '<input type="hidden" name="incident_page" value="' . esc_attr((string) $page) . '" />';
+        wp_nonce_field('site_watchdog_refresh_incidents');
+        submit_button(__('Refresh', 'site-watchdog'), 'secondary page-title-action', 'submit', false);
+        echo '</form>';
         echo '<hr class="wp-header-end" />';
 
         if ('' !== $result['error']) {

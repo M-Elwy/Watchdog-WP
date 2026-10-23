@@ -31,6 +31,7 @@ class Settings
         add_action('admin_notices', [$this, 'render_verification_notice']);
         add_action('admin_post_site_watchdog_test_event', [$this, 'handle_test_event']);
         add_action('admin_post_site_watchdog_test_incident', [$this, 'handle_test_incident']);
+        add_action('admin_post_site_watchdog_refresh_incidents', [$this->incidents_view, 'handle_refresh']);
     }
 
     public function validate_api_key_option($value, $old_value, $option): string
@@ -80,6 +81,14 @@ class Settings
 
     public function register_settings(): void
     {
+        if (isset($_POST['option_page']) && 'site_watchdog_settings_group' === wp_unslash($_POST['option_page'])) {
+            if (!current_user_can('manage_options')) {
+                wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'site-watchdog'));
+            }
+
+            check_admin_referer('site_watchdog_settings_action', 'site_watchdog_settings_nonce');
+        }
+
         add_filter('pre_update_option_site_watchdog_api_key', [$this, 'validate_api_key_option'], 10, 3);
 
         add_settings_section(
@@ -312,6 +321,7 @@ class Settings
                 <?php settings_errors('site_watchdog_api_key'); ?>
                 <form method="post" action="options.php">
                     <?php settings_fields('site_watchdog_settings_group'); ?>
+                    <?php wp_nonce_field('site_watchdog_settings_action', 'site_watchdog_settings_nonce'); ?>
                     <?php do_settings_sections('site_watchdog_settings_group'); ?>
                     <?php submit_button(__('Save Settings', 'site-watchdog')); ?>
                 </form>
