@@ -1,5 +1,5 @@
 === Website Watchdog - PHP Error & Incident Alerts ===
-Contributors: your_wp_username
+Contributors: aidly
 Tags: error log, slack notifications, debugging, monitoring, fatal error
 Requires at least: 6.0
 Tested up to: 6.6
@@ -14,17 +14,19 @@ Lightweight watchdog agent that captures PHP fatal errors and WordPress state ch
 
 Website Watchdog monitors your WordPress site for PHP fatal errors, unhandled exceptions, and critical state changes (like plugin updates), correlating them into real-time decision-support alerts delivered straight to Slack.
 
+**Website Watchdog is an independent software project operated by Aidly.net.**
+
 = Third-Party Service Disclosure =
 
 This plugin is a client agent that relies on an external SaaS API to process incident telemetry, correlate root causes, deduplicate error storms, and dispatch alerts to external channels.
 
 * **Service Name:** Website Watchdog API
-* **Service URL:** https://api.websitewatchdog.io
-* **Terms of Service:** https://websitewatchdog.io/terms
-* **Privacy Policy:** https://websitewatchdog.io/privacy
+* **Service URL:** https://wd.aidly.net/
+* **Terms of Service:** https://wd.aidly.net/terms
+* **Privacy Policy:** https://wd.aidly.net/privacy
 
 **What Data Is Collected and Transmitted:**
-To deliver accurate incident alerts and root-cause analysis, the plugin transmits the following data to `https://api.websitewatchdog.io` when triggered:
+To deliver accurate incident alerts and root-cause analysis, the plugin transmits the following data to `https://wd.aidly.net/api` when triggered:
 * **Error Telemetry:** PHP error messages, file names, line numbers, and sanitized stack traces.
 * **Site Context:** Active PHP version, WordPress core version, and active plugin/theme list.
 * **System Events:** WordPress hooks indicating plugin, theme, or core updates and activations.

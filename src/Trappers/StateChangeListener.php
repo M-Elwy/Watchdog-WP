@@ -113,7 +113,7 @@ class StateChangeListener
     // Stable identifier (unlike the display name) for matching incidents to the plugin that changed
     protected function resolve_plugin_slug(string $plugin): string
     {
-        return str_contains($plugin, '/') ? dirname($plugin) : basename($plugin, '.php');
+        return false !== strpos($plugin, '/') ? dirname($plugin) : basename($plugin, '.php');
     }
 
     protected function dispatch(array $payload): void

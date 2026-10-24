@@ -2,7 +2,7 @@
 
 /**
  * Plugin Name: Site Watchdog
- * Plugin URI: https://github.com/wordpress-dev/site-watchdog
+ * Plugin URI: https://wd.aidly.net/
  * Description: WordPress Agent plugin for Site Watchdog.
  * Version: 1.0.0
  * Author: Site Watchdog
