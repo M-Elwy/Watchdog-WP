@@ -65,10 +65,10 @@ application-specific activity.
 
 ### Send a custom event
 
-Use `watchdog_capture_event()` for a state change or other noteworthy event:
+Use `website_watchdog_capture_event()` for a state change or other noteworthy event:
 
 ```php
-watchdog_capture_event(
+website_watchdog_capture_event(
     'subscription_started',
     [
         'details' => [
@@ -83,7 +83,7 @@ watchdog_capture_event(
 The function signature is:
 
 ```php
-watchdog_capture_event(
+website_watchdog_capture_event(
     string $action,
     array $details = [],
     ?string $target = null
@@ -98,11 +98,11 @@ watchdog_capture_event(
 
 ### Send a custom alert
 
-Use `watchdog_capture_incident()` when you want to send a custom alert or
+Use `website_watchdog_capture_incident()` when you want to send a custom alert or
 incident:
 
 ```php
-watchdog_capture_incident(
+website_watchdog_capture_incident(
     'Payment provider is unavailable.',
     'critical',
     'my-plugin||my-script',
@@ -112,7 +112,7 @@ watchdog_capture_incident(
 The function signature is:
 
 ```php
-watchdog_capture_incident(
+website_watchdog_capture_incident(
     string $details,
     string $severity = 'error',
     ?string $source = null

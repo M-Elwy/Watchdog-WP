@@ -59,15 +59,15 @@ add_action('plugins_loaded', static function (): void {
     $plugin->register();
 });
 
-if (!function_exists('watchdog_capture_event')) {
-    function watchdog_capture_event(string $action, array $details = [], ?string $target = null): bool
+if (!function_exists('website_watchdog_capture_event')) {
+    function website_watchdog_capture_event(string $action, array $details = [], ?string $target = null): bool
     {
         return \WebsiteWatchdog\Agent\Api::capture_event($action, $details, $target);
     }
 }
 
-if (!function_exists('watchdog_capture_incident')) {
-    function watchdog_capture_incident(string $details, string $severity = 'error', ?string $source = null): bool
+if (!function_exists('website_watchdog_capture_incident')) {
+    function website_watchdog_capture_incident(string $details, string $severity = 'error', ?string $source = null): bool
     {
         return \WebsiteWatchdog\Agent\Api::capture_incident($details, $severity, $source);
     }

@@ -161,10 +161,20 @@ class IncidentsView
 
     private function normalize_incident(array $incident): array
     {
+        $location = isset($incident['file'], $incident['line']) ? $incident['file'] . ':' . $incident['line'] : '';
+        if ('' === $location && !empty($incident['source'])) {
+            $location = (string) $incident['source'];
+        }
+
+        $type = (string) ($incident['error_type'] ?? '');
+        if ('' === $type) {
+            $type = (string) ($incident['event_type'] ?? '');
+        }
+
         return [
             'message' => (string) ($incident['message'] ?? __('Unknown error', 'website-watchdog')),
-            'location' => isset($incident['file'], $incident['line']) ? $incident['file'] . ':' . $incident['line'] : '',
-            'type' => (string) ($incident['error_type'] ?? 'Unknown'),
+            'location' => $location,
+            'type' => $type,
             'severity' => (string) ($incident['severity'] ?? ''),
             'occurrences' => (int) ($incident['occurrence_count'] ?? 0),
             'last_seen' => (string) ($incident['last_seen_at'] ?? ''),
@@ -196,24 +206,22 @@ class IncidentsView
 
     private function label_for(string $severity, string $type): string
     {
-        if ('E_ERROR' === $severity) {
-            return 'E_ERROR';
+        if ('' !== $severity) {
+            return strtoupper($severity);
         }
 
-        if ('Exception' === $type) {
-            return 'Exception';
-        }
-
-        return 'JS Error';
+        return '' !== $type ? $type : __('Unknown', 'website-watchdog');
     }
 
     private function badge_class(string $severity, string $type): string
     {
-        if ('E_ERROR' === $severity) {
+        $level = strtolower($severity);
+
+        if (in_array($level, ['critical', 'error'], true) || in_array($type, ['php_fatal', 'E_ERROR'], true)) {
             return 'error';
         }
 
-        if ('Exception' === $type) {
+        if ('warning' === $level || in_array($type, ['exception', 'php_error'], true)) {
             return 'warning';
         }
 
