@@ -1,4 +1,4 @@
-name: Deploy To SaaS Server PRD
+name: Deploy To WP Server PRD
 on:
   push:
     branches:
