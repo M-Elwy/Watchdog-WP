@@ -1,9 +1,9 @@
 <?php
 
-namespace WPWatchdog\Agent\Http;
+namespace WebsiteWatchdog\Agent\Http;
 
-use WPWatchdog\Agent\CircuitBreaker;
-use WPWatchdog\Agent\Sanitizer;
+use WebsiteWatchdog\Agent\CircuitBreaker;
+use WebsiteWatchdog\Agent\Sanitizer;
 
 class Client
 {
@@ -20,8 +20,8 @@ class Client
             return ['valid' => false, 'site_id' => '', 'error' => 'Empty API key'];
         }
 
-        $version_path = '/' . SITE_WATCHDOG_API_VERSION;
-        $url = rtrim(SITE_WATCHDOG_API_URL, '/') . (false !== strpos(SITE_WATCHDOG_API_URL, $version_path) ? '' : $version_path) . '/sites/verify';
+        $version_path = '/' . WEBSITE_WATCHDOG_API_VERSION;
+        $url = rtrim(WEBSITE_WATCHDOG_API_URL, '/') . (false !== strpos(WEBSITE_WATCHDOG_API_URL, $version_path) ? '' : $version_path) . '/sites/verify';
 
         $response = wp_remote_post($url, [
             'headers' => [
@@ -57,12 +57,12 @@ class Client
      */
     public function verify(): ?bool
     {
-        $result = $this->check_key((string) get_option('site_watchdog_api_key', ''));
+        $result = $this->check_key((string) get_option('website_watchdog_api_key', ''));
 
         if (null !== $result['valid']) {
-            update_option('site_watchdog_api_key_verified', $result['valid'], false);
+            update_option('website_watchdog_api_key_verified', $result['valid'], false);
             if ($result['valid']) {
-                update_option('site_watchdog_site_id', $result['site_id']);
+                update_option('website_watchdog_site_id', $result['site_id']);
             } else {
                 if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
                     error_log('Site API key rejected; event delivery paused. ' . $result['error']); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -72,7 +72,7 @@ class Client
 
         return $result['valid'];
     }
-    public function dispatch(array $payload, bool $queue_on_failure = true, string $endpoint = '/' . SITE_WATCHDOG_API_VERSION . '/events/ingest'): bool
+    public function dispatch(array $payload, bool $queue_on_failure = true, string $endpoint = '/' . WEBSITE_WATCHDOG_API_VERSION . '/events/ingest'): bool
     {
         $sanitized = Sanitizer::clean_payload($payload);
 
@@ -81,13 +81,13 @@ class Client
             return false;
         }
 
-        $api_key = get_option('site_watchdog_api_key', '');
+        $api_key = get_option('website_watchdog_api_key', '');
         if ('' === $api_key) {
             return false;
         }
 
         // Unverified key: keep the event; Queue::flush() re-verifies before retrying.
-        if (!get_option('site_watchdog_api_key_verified', false)) {
+        if (!get_option('website_watchdog_api_key_verified', false)) {
             if ($queue_on_failure) {
                 (new Queue())->add($sanitized);
             }
@@ -105,7 +105,7 @@ class Client
             'blocking' => false,
         ];
 
-        $response = wp_remote_post(SITE_WATCHDOG_API_URL . $endpoint, $request_args);
+        $response = wp_remote_post(WEBSITE_WATCHDOG_API_URL . $endpoint, $request_args);
         // Non-blocking requests return no response; a non-error result means the request was sent.
         if (!is_wp_error($response) && empty($request_args['blocking'])) {
             return true;
@@ -115,7 +115,7 @@ class Client
 
         if (is_wp_error($response) || 200 > (int) $response_code || 299 < (int) $response_code) {
             if (401 === (int) $response_code) {
-                update_option('site_watchdog_api_key_verified', false, false);
+                update_option('website_watchdog_api_key_verified', false, false);
                 if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
                     error_log('Unauthorized site API key; event delivery paused.'); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
                 }

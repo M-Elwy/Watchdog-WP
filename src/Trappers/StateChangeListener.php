@@ -1,8 +1,8 @@
 <?php
 
-namespace WPWatchdog\Agent\Trappers;
+namespace WebsiteWatchdog\Agent\Trappers;
 
-use WPWatchdog\Agent\Http\Client;
+use WebsiteWatchdog\Agent\Http\Client;
 
 class StateChangeListener
 {

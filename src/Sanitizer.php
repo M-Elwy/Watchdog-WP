@@ -1,6 +1,6 @@
 <?php
 
-namespace WPWatchdog\Agent;
+namespace WebsiteWatchdog\Agent;
 
 class Sanitizer
 {

@@ -1,27 +1,27 @@
 <?php
 
-namespace WPWatchdog\Agent\Admin;
+namespace WebsiteWatchdog\Agent\Admin;
 
 class IncidentsView
 {
-    private const CACHE_KEY = 'site_watchdog_cached_incidents';
+    private const CACHE_KEY = 'website_watchdog_cached_incidents';
     private const CACHE_TTL = 60;
     private const PAGE_SIZE = 20;
-    private const REQUEST_TIMEOUT = 5;
+    private const REQUEST_TIMEOUT = 15;
 
     public function handle_refresh(): void
     {
         if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'site-watchdog'));
+            wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'website-watchdog'));
         }
 
-        check_admin_referer('site_watchdog_refresh_incidents');
+        check_admin_referer('website_watchdog_refresh_incidents');
 
         $page = isset($_POST['incident_page']) ? max(1, absint(wp_unslash($_POST['incident_page']))) : 1;
         delete_transient($this->cache_key($page));
 
         wp_safe_redirect(add_query_arg([
-            'page' => 'site-watchdog-settings',
+            'page' => 'website-watchdog-settings',
             'tab' => 'incidents',
             'incident_page' => $page,
         ], admin_url('admin.php')));
@@ -37,12 +37,12 @@ class IncidentsView
         $incidents = $result['incidents'];
 
         echo '<div class="wrap">';
-        echo '<h1 class="wp-heading-inline">' . esc_html__('Incident History', 'site-watchdog') . '</h1> ';
+        echo '<h1 class="wp-heading-inline">' . esc_html__('Incident History', 'website-watchdog') . '</h1> ';
         echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="display:inline-block;">';
-        echo '<input type="hidden" name="action" value="site_watchdog_refresh_incidents" />';
+        echo '<input type="hidden" name="action" value="website_watchdog_refresh_incidents" />';
         echo '<input type="hidden" name="incident_page" value="' . esc_attr((string) $page) . '" />';
-        wp_nonce_field('site_watchdog_refresh_incidents');
-        submit_button(__('Refresh', 'site-watchdog'), 'secondary page-title-action', 'submit', false);
+        wp_nonce_field('website_watchdog_refresh_incidents');
+        submit_button(__('Refresh', 'website-watchdog'), 'secondary page-title-action', 'submit', false);
         echo '</form>';
         echo '<hr class="wp-header-end" />';
 
@@ -53,17 +53,17 @@ class IncidentsView
         }
 
         if (empty($incidents)) {
-            echo '<p>' . esc_html__('No incident history available yet.', 'site-watchdog') . '</p>';
+            echo '<p>' . esc_html__('No incident history available yet.', 'website-watchdog') . '</p>';
             echo '</div>';
             return;
         }
 
         echo '<table class="wp-list-table widefat fixed striped">';
-        echo '<thead><tr><th>' . esc_html__('Severity / Type', 'site-watchdog') . '</th><th>' . esc_html__('Error Message & Location', 'site-watchdog') . '</th><th>' . esc_html__('Occurrences', 'site-watchdog') . '</th><th>' . esc_html__('Last Seen', 'site-watchdog') . '</th><th>' . esc_html__('Status', 'site-watchdog') . '</th></tr></thead>';
+        echo '<thead><tr><th>' . esc_html__('Severity / Type', 'website-watchdog') . '</th><th>' . esc_html__('Error Message & Location', 'website-watchdog') . '</th><th>' . esc_html__('Occurrences', 'website-watchdog') . '</th><th>' . esc_html__('Last Seen', 'website-watchdog') . '</th><th>' . esc_html__('Status', 'website-watchdog') . '</th></tr></thead>';
         echo '<tbody>';
 
         foreach ($incidents as $incident) {
-            $message = isset($incident['message']) ? (string) $incident['message'] : __('Unknown error', 'site-watchdog');
+            $message = isset($incident['message']) ? (string) $incident['message'] : __('Unknown error', 'website-watchdog');
             $location = isset($incident['location']) ? (string) $incident['location'] : '';
             $type = isset($incident['type']) ? (string) $incident['type'] : 'Unknown';
             $severity = isset($incident['severity']) ? (string) $incident['severity'] : '';
@@ -96,12 +96,12 @@ class IncidentsView
             return $cached;
         }
 
-        $api_key = get_option('site_watchdog_api_key', '');
+        $api_key = get_option('website_watchdog_api_key', '');
         if ('' === $api_key) {
-            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], __('Configure an API key to view incident history.', 'site-watchdog'));
+            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], __('Configure an API key to view incident history.', 'website-watchdog'));
         }
 
-        $url = add_query_arg(['limit' => self::PAGE_SIZE, 'page' => $page], SITE_WATCHDOG_API_URL . '/' . SITE_WATCHDOG_API_VERSION . '/sites/incidents');
+        $url = add_query_arg(['limit' => self::PAGE_SIZE, 'page' => $page], WEBSITE_WATCHDOG_API_URL . '/' . WEBSITE_WATCHDOG_API_VERSION . '/sites/incidents');
         $response = wp_remote_get(
             $url,
             [
@@ -114,18 +114,29 @@ class IncidentsView
         );
 
         if (is_wp_error($response)) {
-            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], __('Could not load incident history. Please try again.', 'site-watchdog'));
+            if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                error_log('Website Watchdog incident history request failed: ' . $response->get_error_message()); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            }
+
+            /* translators: %s: technical error message from the HTTP request. */
+            $message = sprintf(__('Could not load incident history (%s). Please try again.', 'website-watchdog'), $response->get_error_message());
+
+            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], $message);
         }
 
-        if (200 !== (int) wp_remote_retrieve_response_code($response)) {
-            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], __('The incident history service returned an error. Please try again.', 'site-watchdog'));
+        $code = (int) wp_remote_retrieve_response_code($response);
+        if (200 !== $code) {
+            /* translators: %d: HTTP status code returned by the service. */
+            $message = sprintf(__('The incident history service returned an error (HTTP %d). Please try again.', 'website-watchdog'), $code);
+
+            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], $message);
         }
 
         $body = wp_remote_retrieve_body($response);
         $decoded = json_decode($body, true);
 
         if (!is_array($decoded) || !isset($decoded['data']['incidents']) || !is_array($decoded['data']['incidents'])) {
-            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], __('The incident history response was invalid.', 'site-watchdog'));
+            return $this->result([], ['total' => 0, 'page' => $page, 'pages' => 1], __('The incident history response was invalid.', 'website-watchdog'));
         }
 
         $incidents = array_map([$this, 'normalize_incident'], $decoded['data']['incidents']);
@@ -151,7 +162,7 @@ class IncidentsView
     private function normalize_incident(array $incident): array
     {
         return [
-            'message' => (string) ($incident['message'] ?? __('Unknown error', 'site-watchdog')),
+            'message' => (string) ($incident['message'] ?? __('Unknown error', 'website-watchdog')),
             'location' => isset($incident['file'], $incident['line']) ? $incident['file'] . ':' . $incident['line'] : '',
             'type' => (string) ($incident['error_type'] ?? 'Unknown'),
             'severity' => (string) ($incident['severity'] ?? ''),
@@ -224,7 +235,7 @@ class IncidentsView
     private function relative_time(string $timestamp): string
     {
         if ('' === trim($timestamp)) {
-            return __('Recently seen', 'site-watchdog');
+            return __('Recently seen', 'website-watchdog');
         }
 
         $time = strtotime($timestamp);
@@ -233,7 +244,7 @@ class IncidentsView
         }
 
         /* translators: %s: human-readable time difference, e.g. "5 minutes". */
-        return sprintf(__('about %s ago', 'site-watchdog'), human_time_diff($time));
+        return sprintf(__('about %s ago', 'website-watchdog'), human_time_diff($time));
     }
 
     private function render_stack_trace($stack_trace): string

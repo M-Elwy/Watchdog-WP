@@ -1,8 +1,8 @@
 <?php
 
-namespace WPWatchdog\Agent;
+namespace WebsiteWatchdog\Agent;
 
-use WPWatchdog\Agent\Http\Client;
+use WebsiteWatchdog\Agent\Http\Client;
 
 class Api
 {
@@ -14,19 +14,19 @@ class Api
 
         $client = new Client();
         $client->dispatch([
-            'site_id' => get_option('site_watchdog_site_id', ''),
+            'site_id' => get_option('website_watchdog_site_id', ''),
             'event_type' => 'state_change',
             'timestamp' => gmdate('c'),
             'payload' => [
                 'action' => $event_type,
-                'target' => 'Site Watchdog',
-                'details' => ['plugin_slug' => 'site-watchdog'],
+                'target' => 'Website Watchdog',
+                'details' => ['plugin_slug' => 'website-watchdog'],
             ],
         ]);
     }
 
     /**
-     * Send a custom state-change event to Site Watchdog (ARCHITECTURE.md 5.1).
+     * Send a custom state-change event to Website Watchdog (ARCHITECTURE.md 5.1).
      */
     public static function capture_event(string $action, array $details = [], ?string $target = null): bool
     {
@@ -43,7 +43,7 @@ class Api
         $client = new Client();
 
         return $client->dispatch([
-            'site_id' => get_option('site_watchdog_site_id', ''),
+            'site_id' => get_option('website_watchdog_site_id', ''),
             'event_type' => 'state_change',
             'timestamp' => gmdate('c'),
             'payload' => $payload,
@@ -51,7 +51,7 @@ class Api
     }
 
     /**
-     * Send a custom incident to Site Watchdog (ARCHITECTURE.md 5.5).
+     * Send a custom incident to Website Watchdog (ARCHITECTURE.md 5.5).
      */
     public static function capture_incident(string $details, string $severity = 'error', ?string $source = null): bool
     {
@@ -66,11 +66,11 @@ class Api
         $client = new Client();
 
         return $client->dispatch([
-            'site_id' => get_option('site_watchdog_site_id', ''),
+            'site_id' => get_option('website_watchdog_site_id', ''),
             'timestamp' => gmdate('c'),
             'source' => $source ?? 'on_demand',
             'severity' => $severity,
             'details' => $details,
-        ], true, '/' . SITE_WATCHDOG_API_VERSION . '/incidents/on-demand');
+        ], true, '/' . WEBSITE_WATCHDOG_API_VERSION . '/incidents/on-demand');
     }
 }

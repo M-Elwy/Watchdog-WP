@@ -2,34 +2,28 @@
 
 defined('WP_UNINSTALL_PLUGIN') || exit;
 
-function site_watchdog_uninstall(): void
+function website_watchdog_uninstall(): void
 {
     global $wpdb;
 
     $options = [
-        'site_watchdog_api_key',
-        'site_watchdog_api_key_verified',
-        'site_watchdog_site_id',
-        'site_watchdog_offline_queue',
-        'wp_watchdog_api_key',
-        'wp_watchdog_site_id',
-        'wp_watchdog_retry_queue',
+        'website_watchdog_api_key',
+        'website_watchdog_api_key_verified',
+        'website_watchdog_site_id',
+        'website_watchdog_offline_queue',
     ];
 
     foreach ($options as $option) {
         delete_option($option);
     }
 
-    delete_transient('site_watchdog_cached_incidents');
-    delete_transient('wp_watchdog_cached_incidents');
+    delete_transient('website_watchdog_cached_incidents');
 
     $transient_prefixes = [
-        '_transient_site_watchdog_cached_incidents_',
-        '_transient_timeout_site_watchdog_cached_incidents_',
-        '_transient_wp_watchdog_cached_incidents_',
-        '_transient_timeout_wp_watchdog_cached_incidents_',
-        '_transient_site_watchdog_js_rate_',
-        '_transient_timeout_site_watchdog_js_rate_',
+        '_transient_website_watchdog_cached_incidents_',
+        '_transient_timeout_website_watchdog_cached_incidents_',
+        '_transient_website_watchdog_js_rate_',
+        '_transient_timeout_website_watchdog_js_rate_',
     ];
 
     foreach ($transient_prefixes as $prefix) {
@@ -42,9 +36,9 @@ function site_watchdog_uninstall(): void
         );
     }
 
-    foreach (['site_watchdog_retry_queue', 'site_watchdog_heartbeat', 'wp_watchdog_retry_queue', 'wp_watchdog_heartbeat'] as $hook) {
+    foreach (['website_watchdog_retry_queue', 'website_watchdog_heartbeat'] as $hook) {
         wp_clear_scheduled_hook($hook);
     }
 }
 
-site_watchdog_uninstall();
+website_watchdog_uninstall();

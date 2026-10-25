@@ -1,6 +1,6 @@
-# Site Watchdog
+# Website Watchdog
 
-Site Watchdog is a lightweight WordPress monitoring agent for independent
+Website Watchdog is a lightweight WordPress monitoring agent for independent
 developers and site owners. It captures PHP fatal errors, unhandled
 exceptions, browser JavaScript errors, and important WordPress state changes,
 then sends sanitized telemetry to the Website Watchdog service for incident
@@ -32,8 +32,8 @@ processing and alert delivery. It does not send alerts directly to Slack.
 
 1. Download or clone this repository.
 2. Copy the `Watchdog-WP` directory to `wp-content/plugins/`.
-3. Activate **Site Watchdog** from the WordPress Plugins screen.
-4. Open **Settings > Site Watchdog**.
+3. Activate **Website Watchdog** from the WordPress Plugins screen.
+4. Open **Website Watchdog > Settings**.
 5. Paste the API key generated in the Website Watchdog portal <https://wd.aidly.net/>.
 6. Save the settings and use the test forms to verify delivery.
 
@@ -130,5 +130,5 @@ WordPress hooks or later application code rather than before plugin loading.
 
 ## License
 
-Site Watchdog is licensed under the
+Website Watchdog is licensed under the
 [GNU General Public License v2.0 or later](https://www.gnu.org/licenses/gpl-2.0.html).

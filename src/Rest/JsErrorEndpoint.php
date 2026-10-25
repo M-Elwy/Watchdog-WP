@@ -1,11 +1,11 @@
 <?php
 
-namespace WPWatchdog\Agent\Rest;
+namespace WebsiteWatchdog\Agent\Rest;
 
 use WP_REST_Request;
 use WP_REST_Response;
-use WPWatchdog\Agent\Http\Client;
-use WPWatchdog\Agent\Sanitizer;
+use WebsiteWatchdog\Agent\Http\Client;
+use WebsiteWatchdog\Agent\Sanitizer;
 
 class JsErrorEndpoint
 {
@@ -24,7 +24,7 @@ class JsErrorEndpoint
     public function register(): void
     {
         add_action('rest_api_init', function (): void {
-            register_rest_route('site-watchdog/' . SITE_WATCHDOG_API_VERSION, '/js-error', [
+            register_rest_route('website-watchdog/' . WEBSITE_WATCHDOG_API_VERSION, '/js-error', [
                 'methods' => 'POST',
                 'callback' => [$this, 'handle_request'],
                 'permission_callback' => '__return_true',
@@ -39,7 +39,7 @@ class JsErrorEndpoint
         }
 
         $client_address = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
-        $rate_key = 'site_watchdog_js_rate_' . md5($client_address);
+        $rate_key = 'website_watchdog_js_rate_' . md5($client_address);
         $requests = get_transient($rate_key);
         $requests = is_array($requests) ? $requests : [];
         $requests = array_values(array_filter($requests, static function ($timestamp): bool {

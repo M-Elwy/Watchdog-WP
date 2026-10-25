@@ -1,8 +1,8 @@
 <?php
 
-namespace WPWatchdog\Agent\Cron;
+namespace WebsiteWatchdog\Agent\Cron;
 
-use WPWatchdog\Agent\Http\Client;
+use WebsiteWatchdog\Agent\Http\Client;
 
 class Heartbeat
 {
@@ -10,16 +10,16 @@ class Heartbeat
     {
         add_filter('cron_schedules', [$this, 'register_schedule']);
 
-        if (!wp_next_scheduled('site_watchdog_retry_queue')) {
-            wp_schedule_event(time(), '15minutes', 'site_watchdog_retry_queue');
+        if (!wp_next_scheduled('website_watchdog_retry_queue')) {
+            wp_schedule_event(time(), '15minutes', 'website_watchdog_retry_queue');
         }
 
-        if (!wp_next_scheduled('site_watchdog_heartbeat')) {
-            wp_schedule_event(time(), '15minutes', 'site_watchdog_heartbeat');
+        if (!wp_next_scheduled('website_watchdog_heartbeat')) {
+            wp_schedule_event(time(), '15minutes', 'website_watchdog_heartbeat');
         }
 
-        add_action('site_watchdog_retry_queue', [$this, 'run_queue_flush']);
-        add_action('site_watchdog_heartbeat', [$this, 'send_ping']);
+        add_action('website_watchdog_retry_queue', [$this, 'run_queue_flush']);
+        add_action('website_watchdog_heartbeat', [$this, 'send_ping']);
     }
 
     public function register_schedule(array $schedules): array
@@ -27,7 +27,7 @@ class Heartbeat
         if (!isset($schedules['15minutes'])) {
             $schedules['15minutes'] = [
                 'interval' => 15 * MINUTE_IN_SECONDS,
-                'display' => __('Every 15 Minutes', 'site-watchdog'),
+                'display' => __('Every 15 Minutes', 'website-watchdog'),
             ];
         }
 
@@ -36,7 +36,7 @@ class Heartbeat
 
     public function run_queue_flush(): void
     {
-        $queue = new \WPWatchdog\Agent\Http\Queue();
+        $queue = new \WebsiteWatchdog\Agent\Http\Queue();
         $queue->flush();
     }
 
@@ -50,6 +50,6 @@ class Heartbeat
                 'wp_version' => get_bloginfo('version'),
                 'php_version' => PHP_VERSION,
             ],
-        ], false, '/' . SITE_WATCHDOG_API_VERSION . '/sites/ping');
+        ], false, '/' . WEBSITE_WATCHDOG_API_VERSION . '/sites/ping');
     }
 }

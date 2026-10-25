@@ -1,12 +1,12 @@
 <?php
 
-namespace WPWatchdog\Agent;
+namespace WebsiteWatchdog\Agent;
 
-use WPWatchdog\Agent\Admin\Settings;
-use WPWatchdog\Agent\Cron\Heartbeat;
-use WPWatchdog\Agent\Rest\JsErrorEndpoint;
-use WPWatchdog\Agent\Trappers\ErrorTrapper;
-use WPWatchdog\Agent\Trappers\StateChangeListener;
+use WebsiteWatchdog\Agent\Admin\Settings;
+use WebsiteWatchdog\Agent\Cron\Heartbeat;
+use WebsiteWatchdog\Agent\Rest\JsErrorEndpoint;
+use WebsiteWatchdog\Agent\Trappers\ErrorTrapper;
+use WebsiteWatchdog\Agent\Trappers\StateChangeListener;
 
 class Plugin
 {
@@ -38,10 +38,10 @@ class Plugin
     public function enqueue_frontend_script(): void
     {
         wp_enqueue_script(
-            'site-watchdog-frontend',
-            plugins_url('assets/js/watchdog-frontend.js', SITE_WATCHDOG_PATH . 'website-watchdog.php'),
+            'website-watchdog-frontend',
+            plugins_url('assets/js/website-watchdog-frontend.js', WEBSITE_WATCHDOG_PATH . 'website-watchdog.php'),
             [],
-            SITE_WATCHDOG_VERSION,
+            WEBSITE_WATCHDOG_VERSION,
             true
         );
     }

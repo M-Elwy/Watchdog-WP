@@ -1,9 +1,9 @@
 <?php
 
-namespace WPWatchdog\Agent\Trappers;
+namespace WebsiteWatchdog\Agent\Trappers;
 
 use Throwable;
-use WPWatchdog\Agent\Http\Client;
+use WebsiteWatchdog\Agent\Http\Client;
 
 class ErrorTrapper
 {

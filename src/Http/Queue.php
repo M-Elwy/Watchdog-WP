@@ -1,10 +1,10 @@
 <?php
 
-namespace WPWatchdog\Agent\Http;
+namespace WebsiteWatchdog\Agent\Http;
 
 class Queue
 {
-    private const TRANSIENT_KEY = 'site_watchdog_offline_queue';
+    private const TRANSIENT_KEY = 'website_watchdog_offline_queue';
     private const MAX_ITEMS = 50;
 
     public function add(array $payload): void
