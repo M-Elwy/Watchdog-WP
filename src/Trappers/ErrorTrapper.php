@@ -17,14 +17,16 @@ class ErrorTrapper
 
     public function register(): void
     {
-        set_error_handler([$this, 'handle_error']);
+        // Capturing PHP errors is the core purpose of this plugin.
+        set_error_handler([$this, 'handle_error']); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
         set_exception_handler([$this, 'handle_exception']);
         register_shutdown_function([$this, 'handle_shutdown']);
     }
 
     public function handle_error(int $severity, string $message, string $file = '', int $line = 0): bool
     {
-        if (!(error_reporting() & $severity)) {
+        // Read-only check to honor the site's error_reporting level and @-suppression.
+        if (!(error_reporting() & $severity)) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting
             return false;
         }
 

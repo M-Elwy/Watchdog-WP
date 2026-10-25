@@ -49,7 +49,9 @@ class Settings
 
         if (true !== $result['valid']) {
             self::mark_api_key_verified(false);
-            error_log('Failed to verify API Key with Watchdog server: ' . $result['error']);
+            if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                error_log('Failed to verify API Key with Watchdog server: ' . $result['error']); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            }
             add_settings_error('site_watchdog_api_key', 'invalid_key', __('Could not verify API Key with Watchdog server.', 'site-watchdog'));
 
             return $old_value;
@@ -81,7 +83,11 @@ class Settings
 
     public function register_settings(): void
     {
-        if (isset($_POST['option_page']) && 'site_watchdog_settings_group' === wp_unslash($_POST['option_page'])) {
+        // The nonce is verified immediately below once the option page is identified.
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $option_page = isset($_POST['option_page']) ? sanitize_key(wp_unslash($_POST['option_page'])) : '';
+
+        if ('site_watchdog_settings_group' === $option_page) {
             if (!current_user_can('manage_options')) {
                 wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'site-watchdog'));
             }
@@ -153,7 +159,11 @@ class Settings
 
     public function handle_test_event(): void
     {
-        $this->verify_test_request('site_watchdog_test_event_nonce');
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'site-watchdog'));
+        }
+
+        check_admin_referer('site_watchdog_test_event_nonce');
 
         $action = isset($_POST['event_action']) ? sanitize_key(wp_unslash($_POST['event_action'])) : '';
         $target = isset($_POST['event_target']) ? sanitize_text_field(wp_unslash($_POST['event_target'])) : '';
@@ -169,7 +179,11 @@ class Settings
 
     public function handle_test_incident(): void
     {
-        $this->verify_test_request('site_watchdog_test_incident_nonce');
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'site-watchdog'));
+        }
+
+        check_admin_referer('site_watchdog_test_incident_nonce');
 
         $details = isset($_POST['incident_details']) ? sanitize_textarea_field(wp_unslash($_POST['incident_details'])) : '';
         $severity = isset($_POST['incident_severity']) ? sanitize_key(wp_unslash($_POST['incident_severity'])) : 'error';
@@ -181,15 +195,6 @@ class Settings
 
         $sent = Api::capture_incident($details, $severity, '' !== $source ? $source : null);
         $this->redirect_with_test_result('incident', $sent, $sent ? __('Test incident sent.', 'site-watchdog') : __('Test incident could not be sent.', 'site-watchdog'));
-    }
-
-    protected function verify_test_request(string $nonce_action): void
-    {
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'site-watchdog'));
-        }
-
-        check_admin_referer($nonce_action);
     }
 
     protected function redirect_with_test_result(string $type, bool $success, string $message): void
@@ -208,12 +213,15 @@ class Settings
 
     public function render_test_result(): void
     {
+        // Display-only redirect result; no state is changed, and output is escaped.
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended
         if (!isset($_GET['site_watchdog_test_message'], $_GET['site_watchdog_test_status'])) {
             return;
         }
 
         $status = 'success' === sanitize_key(wp_unslash($_GET['site_watchdog_test_status'])) ? 'success' : 'error';
         $message = sanitize_text_field(wp_unslash($_GET['site_watchdog_test_message']));
+        // phpcs:enable WordPress.Security.NonceVerification.Recommended
 
         echo '<div class="notice notice-' . esc_attr($status) . ' is-dismissible"><p>' . esc_html($message) . '</p></div>';
     }
@@ -275,7 +283,8 @@ class Settings
 
     protected function get_active_tab(): string
     {
-        $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'settings';
+        // Tab selection is read-only navigation.
+        $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'settings'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
         return in_array($tab, ['settings', 'test', 'incidents'], true) ? $tab : 'settings';
     }

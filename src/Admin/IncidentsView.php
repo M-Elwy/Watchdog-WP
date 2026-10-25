@@ -30,7 +30,8 @@ class IncidentsView
 
     public function render(): void
     {
-        $page = isset($_GET['incident_page']) ? max(1, absint($_GET['incident_page'])) : 1;
+        // Read-only pagination; no state is changed.
+        $page = isset($_GET['incident_page']) ? max(1, absint($_GET['incident_page'])) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
         $result = $this->get_incidents($page);
         $incidents = $result['incidents'];
@@ -231,6 +232,7 @@ class IncidentsView
             return $timestamp;
         }
 
+        /* translators: %s: human-readable time difference, e.g. "5 minutes". */
         return sprintf(__('about %s ago', 'site-watchdog'), human_time_diff($time));
     }
 

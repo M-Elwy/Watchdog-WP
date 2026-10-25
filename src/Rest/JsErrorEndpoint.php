@@ -38,7 +38,7 @@ class JsErrorEndpoint
             return new WP_REST_Response(['ok' => false, 'error' => 'Payload too large.'], 413);
         }
 
-        $client_address = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : 'unknown';
+        $client_address = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
         $rate_key = 'site_watchdog_js_rate_' . md5($client_address);
         $requests = get_transient($rate_key);
         $requests = is_array($requests) ? $requests : [];

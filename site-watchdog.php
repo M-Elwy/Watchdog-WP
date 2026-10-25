@@ -1,11 +1,13 @@
 <?php
 
 /**
- * Plugin Name: Site Watchdog
+ * Plugin Name: Website Watchdog - PHP Error & Incident Alerts
  * Plugin URI: https://wd.aidly.net/
  * Description: WordPress Agent plugin for Site Watchdog.
  * Version: 1.0.0
  * Author: Site Watchdog
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: site-watchdog
  */
 
@@ -41,16 +43,12 @@ spl_autoload_register(static function ($class): void {
         require_once $file;
     }
 });
-$send_plugin_state_event = static function (string $event_type): void {
-    \WPWatchdog\Agent\Api::send_plugin_state_event($event_type);
-};
-
-register_activation_hook(__FILE__, static function () use ($send_plugin_state_event): void {
-    $send_plugin_state_event('plugin_activated');
+register_activation_hook(__FILE__, static function (): void {
+    \WPWatchdog\Agent\Api::send_plugin_state_event('plugin_activated');
 });
 
-register_deactivation_hook(__FILE__, static function () use ($send_plugin_state_event): void {
-    $send_plugin_state_event('plugin_deactivated');
+register_deactivation_hook(__FILE__, static function (): void {
+    \WPWatchdog\Agent\Api::send_plugin_state_event('plugin_deactivated');
 });
 add_action('plugins_loaded', static function (): void {
     $plugin = new \WPWatchdog\Agent\Plugin();

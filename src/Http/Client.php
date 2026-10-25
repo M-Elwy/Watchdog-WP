@@ -64,7 +64,9 @@ class Client
             if ($result['valid']) {
                 update_option('site_watchdog_site_id', $result['site_id']);
             } else {
-                error_log('Site API key rejected; event delivery paused. ' . $result['error']);
+                if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                    error_log('Site API key rejected; event delivery paused. ' . $result['error']); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                }
             }
         }
 
@@ -114,7 +116,9 @@ class Client
         if (is_wp_error($response) || 200 > (int) $response_code || 299 < (int) $response_code) {
             if (401 === (int) $response_code) {
                 update_option('site_watchdog_api_key_verified', false, false);
-                error_log('Unauthorized site API key; event delivery paused.');
+                if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                    error_log('Unauthorized site API key; event delivery paused.'); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                }
 
                 return false;
             }
