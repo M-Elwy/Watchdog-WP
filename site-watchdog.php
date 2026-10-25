@@ -65,8 +65,8 @@ if (!function_exists('watchdog_capture_event')) {
 }
 
 if (!function_exists('watchdog_capture_incident')) {
-    function watchdog_capture_incident(string $details, string $severity = 'error', ?string $source = null, ?string $channel = null): bool
+    function watchdog_capture_incident(string $details, string $severity = 'error', ?string $source = null): bool
     {
-        return \WPWatchdog\Agent\Api::capture_incident($details, $severity, $source, $channel);
+        return \WPWatchdog\Agent\Api::capture_incident($details, $severity, $source);
     }
 }

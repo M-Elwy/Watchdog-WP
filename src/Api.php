@@ -53,7 +53,7 @@ class Api
     /**
      * Send a custom incident to Site Watchdog (ARCHITECTURE.md 5.5).
      */
-    public static function capture_incident(string $details, string $severity = 'error', ?string $source = null, ?string $channel = null): bool
+    public static function capture_incident(string $details, string $severity = 'error', ?string $source = null): bool
     {
         if (!class_exists(Client::class)) {
             return false;
@@ -71,7 +71,6 @@ class Api
             'source' => $source ?? 'on_demand',
             'severity' => $severity,
             'details' => $details,
-            'channel' => $channel,
         ], true, '/' . SITE_WATCHDOG_API_VERSION . '/incidents/on-demand');
     }
 }
