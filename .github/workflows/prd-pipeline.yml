@@ -37,7 +37,7 @@ jobs:
       - name: rsync files via ssh
         uses: burnett01/rsync-deployments@7.0.0
         with:
-          switches: --cvs-exclude --progress -rvz --exclude='.github/' --exclude='TO-DO.txt'
+          switches: --cvs-exclude --progress -rvz --exclude='.github/' --exclude='TO-DO.txt' --exclude='.gitignore'
           remote_host: ${{ secrets.HOST }}
           remote_user: ${{ secrets.USERNAME }}
           remote_key: ${{ secrets.PRIVATE_KEY }}
