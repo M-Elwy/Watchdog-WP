@@ -49,6 +49,7 @@ class Heartbeat
             'payload' => [
                 'wp_version' => get_bloginfo('version'),
                 'php_version' => PHP_VERSION,
+                'site_url' => home_url(),
             ],
         ], false, '/' . WEBSITE_WATCHDOG_API_VERSION . '/sites/ping');
     }

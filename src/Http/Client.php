@@ -28,6 +28,7 @@ class Client
                 'Authorization' => 'Bearer ' . $api_key,
                 'Content-Type' => 'application/json',
             ],
+            'body' => wp_json_encode(['site_url' => home_url()]),
             'timeout' => 10,
         ]);
 
