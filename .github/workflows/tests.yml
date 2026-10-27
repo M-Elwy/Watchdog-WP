@@ -1,0 +1,24 @@
+name: Unit tests
+
+on:
+  pull_request:
+  workflow_call:
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { php: '7.4', phpunit: '9.6' }
+          - { php: '8.0', phpunit: '9.6' }
+          - { php: '8.1', phpunit: '10.5' }
+          - { php: '8.3', phpunit: '10.5' }
+          - { php: '8.5', phpunit: '10.5' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: phpunit:${{ matrix.phpunit }}
+      - run: phpunit

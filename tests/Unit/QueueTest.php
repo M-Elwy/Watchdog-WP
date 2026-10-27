@@ -1,0 +1,81 @@
+<?php
+
+namespace WebsiteWatchdog\Agent\Tests\Unit;
+
+use WebsiteWatchdog\Agent\Http\Queue;
+use WebsiteWatchdog\Agent\Tests\TestCase;
+use WP_Error;
+use WPState;
+
+class QueueTest extends TestCase
+{
+    private const KEY = 'website_watchdog_offline_queue';
+
+    public function test_add_appends_payloads(): void
+    {
+        $queue = new Queue();
+        $queue->add(['n' => 1]);
+        $queue->add(['n' => 2]);
+
+        $this->assertSame([['n' => 1], ['n' => 2]], WPState::$options[self::KEY]);
+    }
+
+    public function test_add_caps_queue_at_50_dropping_oldest(): void
+    {
+        $queue = new Queue();
+        for ($i = 1; $i <= 55; $i++) {
+            $queue->add(['n' => $i]);
+        }
+
+        $this->assertCount(50, WPState::$options[self::KEY]);
+        $this->assertSame(['n' => 6], WPState::$options[self::KEY][0]);
+        $this->assertSame(['n' => 55], WPState::$options[self::KEY][49]);
+    }
+
+    public function test_flush_on_empty_queue_returns_empty(): void
+    {
+        $this->assertSame([], (new Queue())->flush());
+        $this->assertSame([], WPState::$remote_calls);
+    }
+
+    public function test_flush_keeps_queue_when_key_invalid(): void
+    {
+        WPState::$options['website_watchdog_api_key'] = 'k';
+        WPState::$options[self::KEY] = [['n' => 1]];
+        WPState::$remote_handler = static function () {
+            return ['response' => ['code' => 401], 'body' => ''];
+        };
+
+        $this->assertSame([['n' => 1]], (new Queue())->flush());
+        $this->assertSame([['n' => 1]], WPState::$options[self::KEY]);
+    }
+
+    public function test_flush_delivers_and_clears_queue(): void
+    {
+        WPState::$options['website_watchdog_api_key'] = 'k';
+        WPState::$options[self::KEY] = [['n' => 1], ['n' => 2]];
+        WPState::$remote_handler = static function (string $url) {
+            return ['response' => ['code' => 200], 'body' => '{"data":{"site_id":"abc"}}'];
+        };
+
+        $this->assertSame([], (new Queue())->flush());
+        $this->assertSame([], WPState::$options[self::KEY]);
+        // 1 verify + 2 deliveries
+        $this->assertCount(3, WPState::$remote_calls);
+    }
+
+    public function test_flush_retains_failed_items(): void
+    {
+        WPState::$options['website_watchdog_api_key'] = 'k';
+        WPState::$options[self::KEY] = [['n' => 1]];
+        WPState::$remote_handler = static function (string $url) {
+            if (false !== strpos($url, '/sites/verify')) {
+                return ['response' => ['code' => 200], 'body' => '{"data":{"site_id":"abc"}}'];
+            }
+
+            return new WP_Error('http', 'fail');
+        };
+
+        $this->assertSame([['n' => 1]], (new Queue())->flush());
+    }
+}

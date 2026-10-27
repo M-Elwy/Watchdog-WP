@@ -1,2 +1,6 @@
 .vscode
 .github/copilot-instructions.md
+
+/tools/phpunit.phar
+/vendor/
+.phpunit.result.cache

@@ -25,8 +25,13 @@ on:
         required: false
 
 jobs:
+  tests:
+    name: Run tests
+    uses: ./.github/workflows/tests.yml
+
   deploy:
     name: Deploy PRD
+    needs: tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,7 +42,7 @@ jobs:
       - name: rsync files via ssh
         uses: burnett01/rsync-deployments@7.0.0
         with:
-          switches: --cvs-exclude --progress -rvz --exclude='.github/' --exclude='TO-DO.txt' --exclude='.gitignore'
+          switches: --cvs-exclude --progress -rvz --exclude='.*' --exclude='TO-DO.txt' --exclude='tests/' --exclude='tools/' --exclude='phpunit.xml.dist'
           remote_host: ${{ secrets.HOST }}
           remote_user: ${{ secrets.USERNAME }}
           remote_key: ${{ secrets.PRIVATE_KEY }}

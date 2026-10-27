@@ -47,6 +47,12 @@ spl_autoload_register(static function ($class): void {
         require_once $file;
     }
 });
+
+// Optional in-site test runner (Tools > Watchdog Self-Test); enable with define('WEBSITE_WATCHDOG_SELFTEST', true) in wp-config.php.
+if (defined('WEBSITE_WATCHDOG_SELFTEST') && WEBSITE_WATCHDOG_SELFTEST && is_admin() && is_readable(WEBSITE_WATCHDOG_PATH . 'tests/site/admin-page.php')) {
+    require_once WEBSITE_WATCHDOG_PATH . 'tests/site/admin-page.php';
+}
+
 register_activation_hook(__FILE__, static function (): void {
     \WebsiteWatchdog\Agent\Api::send_plugin_state_event('plugin_activated');
 });
