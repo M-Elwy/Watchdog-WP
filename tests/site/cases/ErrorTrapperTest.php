@@ -30,9 +30,11 @@ class ErrorTrapperTest extends TestCase
 
         $this->assert_count(1, $this->client->dispatched);
         $payload = $this->client->dispatched[0]['payload'];
-        $this->assert_same('php_error', $payload['event_type']);
-        $this->assert_same('boom', $payload['payload']['message']);
-        $this->assert_same(12, $payload['payload']['line']);
+        $this->assert_valid_incident($payload);
+        $this->assert_same('critical', $payload['payload']['severity']);
+        $this->assert_same('php_error', $payload['payload']['error_type']);
+        $this->assert_same('boom', $payload['payload']['details']);
+        $this->assert_same('f.php:12', $payload['payload']['source']);
     }
 
     public function test_non_fatal_errors_are_ignored(): void
@@ -57,10 +59,12 @@ class ErrorTrapperTest extends TestCase
         $this->trapper->handle_exception(new \RuntimeException('bad'));
 
         $payload = $this->client->dispatched[0]['payload'];
-        $this->assert_same('exception', $payload['event_type']);
-        $this->assert_same('bad', $payload['payload']['message']);
-        $this->assert_true(is_array($payload['payload']['trace']));
-        $this->assert_true(is_int($payload['payload']['line']));
+        $this->assert_valid_incident($payload);
+        $this->assert_same('error', $payload['payload']['severity']);
+        $this->assert_same('RuntimeException', $payload['payload']['error_type']);
+        $this->assert_same('bad', $payload['payload']['details']);
+        $this->assert_true(false !== strpos($payload['payload']['source'], ':'), 'source includes file:line');
+        $this->assert_true(!empty($payload['payload']['stack_trace']) || is_array($payload['payload']['stack_trace'] ?? []));
     }
 
     public function test_shutdown_without_error_is_silent(): void
@@ -89,7 +93,7 @@ class ErrorTrapperTest extends TestCase
         $trapper->handle_exception(new \RuntimeException('Failed at https://site.test/x?token=abc'));
 
         $body = $this->last_http_json();
-        $this->assert_same('exception', $body['event_type']);
-        $this->assert_same('Failed at https://site.test/x', $body['payload']['message']);
+        $this->assert_valid_incident($body);
+        $this->assert_same('Failed at https://site.test/x', $body['payload']['details']);
     }
 }

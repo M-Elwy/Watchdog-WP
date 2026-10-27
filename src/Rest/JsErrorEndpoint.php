@@ -5,14 +5,17 @@ namespace WebsiteWatchdog\Agent\Rest;
 use WP_REST_Request;
 use WP_REST_Response;
 use WebsiteWatchdog\Agent\Http\Client;
-use WebsiteWatchdog\Agent\Sanitizer;
+use WebsiteWatchdog\Agent\IncidentPayload;
 
 class JsErrorEndpoint
 {
     private const MAX_BODY_BYTES = 16384;
     private const RATE_LIMIT = 10;
     private const RATE_WINDOW = 60;
-    private const ALLOWED_FIELDS = ['type', 'message', 'source', 'line', 'column', 'stack'];
+    private const ALLOWED_FIELDS = ['type', 'message', 'source', 'line', 'column', 'stack', 'url'];
+    private const SEEN_KEY = 'website_watchdog_js_seen';
+    private const DEDUPE_WINDOW = 3600;
+    private const MAX_SEEN = 100;
 
     protected $http_client;
 
@@ -53,11 +56,15 @@ class JsErrorEndpoint
 
         $payload = $request->get_json_params();
         if (!is_array($payload)) {
+            // sendBeacon posts strings as text/plain, so WP does not parse them as JSON.
+            $payload = json_decode((string) $request->get_body(), true);
+        }
+        if (!is_array($payload)) {
             return new WP_REST_Response(['ok' => false, 'error' => 'Invalid JSON payload.'], 400);
         }
 
         $payload = array_intersect_key($payload, array_flip(self::ALLOWED_FIELDS));
-        foreach (['type', 'message', 'source', 'stack'] as $field) {
+        foreach (['type', 'message', 'source', 'stack', 'url'] as $field) {
             if (isset($payload[$field])) {
                 $payload[$field] = is_scalar($payload[$field]) ? substr(sanitize_textarea_field((string) $payload[$field]), 0, 2000) : '';
             }
@@ -68,15 +75,35 @@ class JsErrorEndpoint
             }
         }
 
-        $sanitized = Sanitizer::clean_payload($payload);
+        $message = isset($payload['message']) ? (string) $payload['message'] : '';
+        $source = isset($payload['source']) ? (string) $payload['source'] : '';
+        $line = isset($payload['line']) ? (int) $payload['line'] : 0;
+        $column = isset($payload['column']) ? (int) $payload['column'] : 0;
 
-        $forward_payload = [
-            'event_type' => 'js_error',
-            'timestamp' => gmdate('c'),
-            'payload' => $sanitized,
-        ];
+        // The same error repeating (loops, every page view) is reported once per hour.
+        $fingerprint = md5($message . '|' . $source . '|' . $line . '|' . $column);
+        $seen = get_transient(self::SEEN_KEY);
+        $seen = is_array($seen) ? $seen : [];
+        $now = time();
+        $seen = array_filter($seen, static function ($timestamp) use ($now): bool {
+            return is_int($timestamp) && ($now - $timestamp) < self::DEDUPE_WINDOW;
+        });
+        if (isset($seen[$fingerprint])) {
+            return new WP_REST_Response(['ok' => true, 'duplicate' => true], 200);
+        }
+        $seen[$fingerprint] = $now;
+        set_transient(self::SEEN_KEY, array_slice($seen, -self::MAX_SEEN, null, true), self::DEDUPE_WINDOW);
 
-        $this->http_client->dispatch($forward_payload);
+        $stack_trace = isset($payload['stack']) && '' !== $payload['stack']
+            ? array_slice(array_map('trim', explode("\n", (string) $payload['stack'])), 0, 20)
+            : [];
+        $location = '' !== $source ? $source . ($line > 0 ? ':' . $line : '') : 'javascript';
+
+        $this->http_client->dispatch(IncidentPayload::build('warning', $location, $message, [
+            'error_type' => isset($payload['type']) && '' !== $payload['type'] ? 'js_error:' . $payload['type'] : 'js_error',
+            'stack_trace' => $stack_trace,
+            'url' => isset($payload['url']) ? (string) $payload['url'] : '',
+        ]));
 
         return new WP_REST_Response(['ok' => true], 200);
     }

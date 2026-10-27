@@ -21,12 +21,12 @@
     }
     window.onerror = function (msg, src, line, col, error) {
         if (ignored.test(String(msg || '')) || ignored.test(String(src || ''))) { return true; }
-        send({ type: 'window.onerror', message: clean(msg), source: clean(src), line: line || 0, column: col || 0, stack: clean(error && error.stack || '') });
+        send({ type: 'window.onerror', message: clean(msg), source: clean(src), line: line || 0, column: col || 0, stack: clean(error && error.stack || ''), url: location.href });
         return false;
     };
     window.onunhandledrejection = function (event) {
         var reason = event && event.reason;
         if (!reason) { return; }
-        send({ type: 'unhandledrejection', message: clean(reason && reason.message || reason), stack: clean(reason && reason.stack || '') });
+        send({ type: 'unhandledrejection', message: clean(reason && reason.message || reason), stack: clean(reason && reason.stack || ''), url: location.href });
     };
 })();

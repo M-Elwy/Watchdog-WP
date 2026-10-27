@@ -4,6 +4,7 @@ namespace WebsiteWatchdog\Agent\Trappers;
 
 use Throwable;
 use WebsiteWatchdog\Agent\Http\Client;
+use WebsiteWatchdog\Agent\IncidentPayload;
 
 class ErrorTrapper
 {
@@ -34,24 +35,19 @@ class ErrorTrapper
             return false;
         }
 
-        $this->dispatch($this->build_payload('php_error', [
-            'severity' => $severity,
-            'message' => $message,
-            'file' => $file,
-            'line' => $line,
-        ]));
+        $this->dispatch(IncidentPayload::build('critical', IncidentPayload::location($file, $line), $message, ['error_type' => 'php_error']));
 
         return true;
     }
 
     public function handle_exception(Throwable $exception): void
     {
-        $this->dispatch($this->build_payload('exception', [
-            'message' => $exception->getMessage(),
-            'file' => $exception->getFile(),
-            'line' => $exception->getLine(),
-            'trace' => $exception->getTrace(),
-        ]));
+        $this->dispatch(IncidentPayload::build(
+            'error',
+            IncidentPayload::location($exception->getFile(), $exception->getLine()),
+            $exception->getMessage(),
+            ['error_type' => get_class($exception), 'stack_trace' => IncidentPayload::format_trace($exception->getTrace())]
+        ));
     }
 
     public function handle_shutdown(): void
@@ -66,24 +62,16 @@ class ErrorTrapper
             return;
         }
 
-        $this->dispatch($this->build_payload('php_fatal', [
-            'message' => $error['message'] ?? '',
-            'file' => $error['file'] ?? '',
-            'line' => $error['line'] ?? 0,
-        ]));
+        $this->dispatch(IncidentPayload::build(
+            'critical',
+            IncidentPayload::location((string) ($error['file'] ?? ''), (int) ($error['line'] ?? 0)),
+            (string) ($error['message'] ?? ''),
+            ['error_type' => 'php_fatal']
+        ));
     }
 
     protected function dispatch(array $payload): void
     {
         $this->http_client->dispatch($payload);
-    }
-
-    protected function build_payload(string $type, array $context): array
-    {
-        return [
-            'event_type' => $type,
-            'timestamp' => gmdate('c'),
-            'payload' => $context,
-        ];
     }
 }

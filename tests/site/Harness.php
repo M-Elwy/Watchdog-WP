@@ -56,6 +56,7 @@ final class Sandbox
     const TRANSIENTS = [
         'website_watchdog_cooldown',
         'website_watchdog_rate_limit_count',
+        'website_watchdog_js_seen',
         'website_watchdog_cached_incidents',
         'website_watchdog_cached_incidents_1',
         'website_watchdog_cached_incidents_2',
@@ -547,8 +548,32 @@ abstract class TestCase
         foreach ($headers as $name => $value) {
             $request->set_header($name, $value);
         }
+        if (isset($options['raw'])) {
+            $request->set_body($options['raw']);
+        }
 
         return rest_do_request($request);
+    }
+
+    /** Mirrors the backend incident schema: severity, source and details are required; the rest is optional but typed. */
+    protected function assert_valid_incident(array $body): void
+    {
+        $this->assert_same('incident', $body['event_type'] ?? null, 'event_type');
+        $this->assert_true(!empty($body['timestamp']), 'timestamp');
+        $payload = isset($body['payload']) && is_array($body['payload']) ? $body['payload'] : [];
+        $this->assert_true(in_array($payload['severity'] ?? null, ['info', 'warning', 'error', 'critical'], true), 'payload.severity must be info|warning|error|critical');
+        foreach (['source', 'details'] as $field) {
+            $this->assert_true(isset($payload[$field]) && is_string($payload[$field]) && '' !== $payload[$field], 'payload.' . $field . ' must be a non-empty string');
+        }
+        foreach (['error_type', 'url', 'php_version', 'wp_version'] as $field) {
+            $this->assert_true(!isset($payload[$field]) || (is_string($payload[$field]) && '' !== $payload[$field]), 'payload.' . $field . ' must be a non-empty string when present');
+        }
+        if (isset($payload['stack_trace'])) {
+            $this->assert_true(is_array($payload['stack_trace']), 'payload.stack_trace must be an array');
+            foreach ($payload['stack_trace'] as $entry) {
+                $this->assert_true(is_string($entry) && '' !== $entry, 'stack_trace entries must be non-empty strings');
+            }
+        }
     }
 
     protected function assert_status(\WP_REST_Response $response, int $expected): void

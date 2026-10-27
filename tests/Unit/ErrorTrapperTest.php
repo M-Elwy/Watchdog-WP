@@ -21,7 +21,7 @@ class ErrorTrapperTest extends TestCase
     public function test_fatal_error_is_dispatched(): void
     {
         $this->client->expects($this->once())->method('dispatch')->with($this->callback(function (array $p): bool {
-            return 'php_error' === $p['event_type'] && 'boom' === $p['payload']['message'] && 12 === $p['payload']['line'];
+            return 'incident' === $p['event_type'] && 'critical' === $p['payload']['severity'] && 'php_error' === $p['payload']['error_type'] && 'boom' === $p['payload']['details'] && 'f.php:12' === $p['payload']['source'];
         }));
 
         $this->assertTrue($this->trapper->handle_error(E_ERROR, 'boom', 'f.php', 12));
@@ -49,7 +49,7 @@ class ErrorTrapperTest extends TestCase
     public function test_exception_is_dispatched(): void
     {
         $this->client->expects($this->once())->method('dispatch')->with($this->callback(function (array $p): bool {
-            return 'exception' === $p['event_type'] && 'bad' === $p['payload']['message'] && is_array($p['payload']['trace']);
+            return 'incident' === $p['event_type'] && 'error' === $p['payload']['severity'] && 'RuntimeException' === $p['payload']['error_type'] && 'bad' === $p['payload']['details'] && !empty($p['payload']['stack_trace']);
         }));
 
         $this->trapper->handle_exception(new \RuntimeException('bad'));

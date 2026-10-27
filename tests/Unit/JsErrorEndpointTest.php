@@ -87,13 +87,25 @@ class JsErrorEndpointTest extends TestCase
 
         $this->assertSame(200, $this->endpoint->handle_request(new WP_REST_Request($body))->get_status());
 
-        $this->assertSame('js_error', $captured['event_type']);
+        $this->assertSame('incident', $captured['event_type']);
         $payload = $captured['payload'];
         $this->assertArrayNotHasKey('evil', $payload);
-        $this->assertSame('Oops at https://s.test/a', $payload['message']);
-        $this->assertSame(12, $payload['line']);
-        $this->assertSame(4, $payload['column']);
-        $this->assertSame('', $payload['source']);
+        $this->assertSame('js_error:error', $payload['error_type']);
+        $this->assertSame('warning', $payload['severity']);
+        $this->assertSame('Oops at https://s.test/a', $payload['details']);
+        $this->assertSame('javascript', $payload['source']);
+        $this->assertNotEmpty($payload['url']);
+        $this->assertNotEmpty($payload['php_version']);
+        $this->assertNotEmpty($payload['wp_version']);
+    }
+
+    public function test_repeated_error_is_dispatched_once(): void
+    {
+        $this->client->expects($this->once())->method('dispatch')->willReturn(true);
+        $request = new WP_REST_Request('{"message":"same","source":"a.js","line":1}');
+
+        $this->assertSame(200, $this->endpoint->handle_request($request)->get_status());
+        $this->assertSame(200, $this->endpoint->handle_request($request)->get_status());
     }
 
     public function test_truncates_long_fields(): void
@@ -107,6 +119,6 @@ class JsErrorEndpointTest extends TestCase
 
         $this->endpoint->handle_request(new WP_REST_Request(json_encode(['message' => str_repeat('a', 5000)])));
 
-        $this->assertSame(2000, strlen($captured['payload']['message']));
+        $this->assertSame(2000, strlen($captured['payload']['details']));
     }
 }
