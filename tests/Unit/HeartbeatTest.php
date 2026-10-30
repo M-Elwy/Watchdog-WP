@@ -49,6 +49,7 @@ class HeartbeatTest extends TestCase
         $this->assertSame('https://example.test/api/v1/sites/ping', $call['url']);
         $body = json_decode($call['args']['body'], true);
         $this->assertSame('site_ping', $body['event_type']);
+        $this->assertSame(WEBSITE_WATCHDOG_VERSION, $body['payload']['agent_version']);
         $this->assertSame(PHP_VERSION, $body['payload']['php_version']);
         $this->assertSame('https://site.test', $body['payload']['site_url']);
     }

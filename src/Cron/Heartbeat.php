@@ -47,6 +47,7 @@ class Heartbeat
             'event_type' => 'site_ping',
             'timestamp' => gmdate('c'),
             'payload' => [
+                'agent_version' => WEBSITE_WATCHDOG_VERSION,
                 'wp_version' => get_bloginfo('version'),
                 'php_version' => PHP_VERSION,
                 'site_url' => home_url(),

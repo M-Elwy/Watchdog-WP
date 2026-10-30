@@ -52,6 +52,9 @@ class HealthEndpointTest extends TestCase
         $data = $response->get_data();
         $this->assert_true($data['ok']);
         $this->assert_same('site_1', $data['site_id']);
+        $this->assert_same(WEBSITE_WATCHDOG_VERSION, $data['agent_version']);
+        $this->assert_same(get_bloginfo('version'), $data['wp_version']);
+        $this->assert_same(PHP_VERSION, $data['php_version']);
         $this->assert_not_empty(strtotime($data['timestamp']), 'timestamp must be parseable');
         $this->assert_same('no-store', $response->get_headers()['Cache-Control']);
     }

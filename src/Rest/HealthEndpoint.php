@@ -41,6 +41,9 @@ class HealthEndpoint
         $response = new WP_REST_Response([
             'ok' => true,
             'site_id' => (string) get_option('website_watchdog_site_id', ''),
+            'agent_version' => WEBSITE_WATCHDOG_VERSION,
+            'wp_version' => (string) get_bloginfo('version'),
+            'php_version' => PHP_VERSION,
             'timestamp' => gmdate('c'),
         ], 200);
         $response->header('Cache-Control', 'no-store');

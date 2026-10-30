@@ -51,6 +51,9 @@ class HealthEndpointTest extends TestCase
         $this->assertSame(200, $response->get_status());
         $this->assertTrue($response->get_data()['ok']);
         $this->assertSame('site_1', $response->get_data()['site_id']);
+        $this->assertSame(WEBSITE_WATCHDOG_VERSION, $response->get_data()['agent_version']);
+        $this->assertSame(get_bloginfo('version'), $response->get_data()['wp_version']);
+        $this->assertSame(PHP_VERSION, $response->get_data()['php_version']);
         $this->assertSame('no-store', $response->headers['Cache-Control']);
     }
 }

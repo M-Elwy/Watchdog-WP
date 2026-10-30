@@ -32,6 +32,7 @@ class HeartbeatTest extends TestCase
         $this->assert_same(WEBSITE_WATCHDOG_API_URL . '/' . WEBSITE_WATCHDOG_API_VERSION . '/sites/ping', $call['url']);
         $body = $this->last_http_json();
         $this->assert_same('site_ping', $body['event_type']);
+        $this->assert_same(WEBSITE_WATCHDOG_VERSION, $body['payload']['agent_version']);
         $this->assert_same(PHP_VERSION, $body['payload']['php_version']);
         $this->assert_same(get_bloginfo('version'), $body['payload']['wp_version']);
         $this->assert_same(home_url(), $body['payload']['site_url']);

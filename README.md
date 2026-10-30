@@ -21,7 +21,7 @@ Website Watchdog is an independent software project operated by Aidly.net.
 
 ## Requirements
 
-- WordPress 6.0 or newer
+- WordPress 6.5 or newer
 - PHP 7.4 or newer
 - An API key from the Website Watchdog portal
 
